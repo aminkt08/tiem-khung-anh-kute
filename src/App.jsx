@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import CanvasWorkspace from './components/CanvasWorkspace';
-import { TEMPLATES_DATA, BACKGROUND_PALETTES } from './data/templatesData';
+import { TEMPLATES_DATA, BACKGROUND_PALETTES, getBestTemplateForCount } from './data/templatesData';
 import { getRandomQuote } from './data/quotesData';
 import { WASHI_TAPE_COLORS, STICKER_ITEMS } from './data/stickersData';
 import { createSamplePhoto } from './data/samplePhotos';
@@ -20,7 +20,7 @@ export default function App() {
   ]);
 
   // Trạng thái khung ảnh & tỉ lệ
-  const [activeTemplate, setActiveTemplate] = useState('canva_blur');
+  const [activeTemplate, setActiveTemplate] = useState('polaroid_duo');
   const [aspectRatio, setAspectRatio] = useState('4:5');
   const [bgColor, setBgColor] = useState('#FAF8F5');
   const [washiColor, setWashiColor] = useState('rgba(254, 205, 211, 0.85)');
@@ -43,7 +43,7 @@ export default function App() {
 
   const [isExporting, setIsExporting] = useState(false);
 
-  // Xử lý upload ảnh (1 đến 6 ảnh) + Auto Layout thông minh
+  // Xử lý upload ảnh (1 đến 6 ảnh) + Thuật toán Auto Layout thông minh
   const handleUploadPhotos = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -56,20 +56,17 @@ export default function App() {
 
     setPhotos(newPhotos);
 
-    // Tự động thông minh: Dựa vào số lượng ảnh để chọn layout vừa vặn nhất
-    if (newPhotos.length === 1) {
-      setActiveTemplate('canva_blur');
-    } else if (newPhotos.length === 2) {
-      setActiveTemplate('polaroid_duo');
-    } else if (newPhotos.length >= 3 && newPhotos.length <= 4) {
-      setActiveTemplate('korean_life4cuts');
-    } else {
-      setActiveTemplate('grid_bento');
-    }
+    // THUẬT TOÁN TỰ ĐỘNG: Chọn khung ảnh tối ưu nhất theo đúng số lượng ảnh tải lên
+    const bestTemplate = getBestTemplateForCount(newPhotos.length);
+    setActiveTemplate(bestTemplate);
   };
 
   const handleRemovePhoto = (index) => {
-    setPhotos(prev => prev.filter((_, i) => i !== index));
+    const updated = photos.filter((_, i) => i !== index);
+    setPhotos(updated);
+    if (updated.length > 0) {
+      setActiveTemplate(getBestTemplateForCount(updated.length));
+    }
   };
 
   // Nút "Đổi phong cách ngẫu nhiên" (Magic Shuffle)

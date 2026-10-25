@@ -9,8 +9,7 @@ import {
   Trash2, 
   Sparkles, 
   Shuffle, 
-  Plus, 
-  Type
+  CheckCircle2
 } from 'lucide-react';
 import { TEMPLATES_DATA, FONT_OPTIONS, BACKGROUND_PALETTES } from '../data/templatesData';
 import { QUOTE_CATEGORIES, getRandomQuote } from '../data/quotesData';
@@ -47,10 +46,14 @@ export default function Sidebar({
   const [activeTab, setActiveTab] = useState('templates');
   const [frameFilter, setFrameFilter] = useState('all');
 
-  // Lọc danh sách khung
-  const filteredTemplates = frameFilter === 'all'
-    ? TEMPLATES_DATA
-    : TEMPLATES_DATA.filter(t => t.category === frameFilter);
+  // Lọc danh sách khung: Có thêm bộ lọc thông minh theo số lượng ảnh hiện tại
+  const filteredTemplates = TEMPLATES_DATA.filter(t => {
+    if (frameFilter === 'all') return true;
+    if (frameFilter === 'recommended') {
+      return t.recommendedCounts && t.recommendedCounts.includes(photos.length);
+    }
+    return t.category === frameFilter;
+  });
 
   return (
     <aside className="w-full lg:w-[380px] bg-white border-r border-slate-200/80 flex flex-col h-auto lg:h-[calc(100vh-65px)] shadow-sm">
@@ -74,7 +77,7 @@ export default function Sidebar({
           }`}
         >
           <LayoutTemplate className="w-4 h-4" />
-          <span>Khung</span>
+          <span>Khung ({TEMPLATES_DATA.length})</span>
         </button>
 
         <button
@@ -135,12 +138,20 @@ export default function Sidebar({
               </label>
             </div>
 
+            {/* Thông báo thuật toán tự động */}
+            <div className="p-3 bg-emerald-50 border border-emerald-200/70 rounded-2xl flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+              <div className="text-xs text-emerald-800">
+                <span className="font-bold">Thuật toán phân bố đa ảnh:</span> Khi tải nhiều ảnh, hệ thống tự động tính toán không gian để ảnh được xếp song song hoặc phân ô cân đối, <span className="font-semibold underline">hoàn toàn không bị đè che mất ảnh</span>!
+              </div>
+            </div>
+
             {/* Danh sách ảnh đã tải */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-500">Ảnh đã chọn ({photos.length}/6)</span>
                 {photos.length > 0 && (
-                  <span className="text-xs text-rose-500 font-semibold">Tự động chọn bố cục đẹp nhất</span>
+                  <span className="text-xs text-rose-500 font-semibold">Tự động chọn khung tối ưu</span>
                 )}
               </div>
 
@@ -168,13 +179,35 @@ export default function Sidebar({
         {/* --- TAB 2: KHUNG ẢNH (TEMPLATES) --- */}
         {activeTab === 'templates' && (
           <div className="space-y-4">
-            {/* Lọc danh mục khung */}
+            {/* Lọc danh mục khung kèm nút Lọc Khuyên Dùng Theo Số Lượng Ảnh */}
             <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
+              <button
+                onClick={() => setFrameFilter('all')}
+                className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
+                  frameFilter === 'all'
+                    ? 'bg-rose-500 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                Tất cả ({TEMPLATES_DATA.length})
+              </button>
+
+              <button
+                onClick={() => setFrameFilter('recommended')}
+                className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
+                  frameFilter === 'recommended'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Tối ưu cho {photos.length} ảnh</span>
+              </button>
+
               {[
-                { id: 'all', name: 'Tất cả' },
-                { id: 'popup', name: 'Pop-up Canva' },
                 { id: 'canva', name: 'Khung Lồng' },
                 { id: 'korean', name: 'Hàn Quốc' },
+                { id: 'popup', name: 'Pop-up' },
                 { id: 'polaroid', name: 'Polaroid' },
               ].map(cat => (
                 <button
@@ -193,21 +226,31 @@ export default function Sidebar({
 
             {/* Grid danh sách khung */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {filteredTemplates.map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => setActiveTemplate(t.id)}
-                  className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
-                    activeTemplate === t.id
-                      ? 'border-rose-500 bg-rose-50/50 shadow-md shadow-rose-100 scale-[1.02]'
-                      : 'border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="text-2xl mb-1.5">{t.name.split(' ')[0]}</div>
-                  <div className="font-bold text-xs text-slate-800 leading-tight">{t.name.replace(/^.+?\s/, '')}</div>
-                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">{t.desc}</p>
-                </div>
-              ))}
+              {filteredTemplates.map((t) => {
+                const isRecommended = t.recommendedCounts && t.recommendedCounts.includes(photos.length);
+
+                return (
+                  <div
+                    key={t.id}
+                    onClick={() => setActiveTemplate(t.id)}
+                    className={`relative p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                      activeTemplate === t.id
+                        ? 'border-rose-500 bg-rose-50/50 shadow-md shadow-rose-100 scale-[1.02]'
+                        : 'border-slate-200/80 bg-white hover:border-slate-300 hover:shadow-sm'
+                    }`}
+                  >
+                    {isRecommended && (
+                      <span className="absolute top-2.5 right-2.5 bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-amber-300/60">
+                        ⭐ Tối ưu cho {photos.length} ảnh
+                      </span>
+                    )}
+
+                    <div className="text-2xl mb-1.5">{t.name.split(' ')[0]}</div>
+                    <div className="font-bold text-xs text-slate-800 leading-tight">{t.name.replace(/^.+?\s/, '')}</div>
+                    <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">{t.desc}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -215,7 +258,6 @@ export default function Sidebar({
         {/* --- TAB 3: CÂU NÓI & THƠ (QUOTES) --- */}
         {activeTab === 'quotes' && (
           <div className="space-y-4">
-            {/* Chủ đề */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Chủ đề câu nói</label>
@@ -254,7 +296,6 @@ export default function Sidebar({
               </div>
             </div>
 
-            {/* Nội dung câu nói */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 Nội dung (Có thể sửa trực tiếp trên ảnh)
@@ -268,7 +309,6 @@ export default function Sidebar({
               />
             </div>
 
-            {/* Tác giả / Lời gửi */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 Chữ ký / Lời gửi
@@ -282,7 +322,6 @@ export default function Sidebar({
               />
             </div>
 
-            {/* Chọn Font chữ */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 Kiểu chữ nghệ thuật
@@ -298,7 +337,6 @@ export default function Sidebar({
               </select>
             </div>
 
-            {/* Cỡ chữ & Màu chữ */}
             <div className="grid grid-cols-2 gap-3 items-center">
               <div>
                 <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
@@ -347,7 +385,6 @@ export default function Sidebar({
               />
             </div>
 
-            {/* Băng dính Washi Tape Color */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
                 Màu băng dính Washi Tape
@@ -367,7 +404,6 @@ export default function Sidebar({
               </div>
             </div>
 
-            {/* Bảng Sticker Palette */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
