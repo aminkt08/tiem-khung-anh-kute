@@ -1,20 +1,21 @@
-// Logic chính của Tiệm Khung Ảnh & Thơ Kute - Phong cách Pop-up 3D & Aesthetic Tối Giản
+// Logic chính của Tiệm Khung Ảnh & Thơ Kute - Khung Lồng Canva, Pop-up 3D & Hàn Quốc
 
 const state = {
     image: null,
     imageLoaded: false,
-    currentFrameId: 'popup_glass',
-    overlayEffect: 'auto', // 'auto', 'glass_card', 'sunbeam', 'postal_stamp', 'sparkles_dust', 'none'
+    currentFrameId: 'music_player_popup',
+    currentFrameCategory: 'all', // 'all', 'popup', 'nested', 'korean'
+    overlayEffect: 'auto',
     currentQuote: null,
     quoteCategory: 'all',
     customQuoteText: '',
     customAuthorText: '',
     fontFamily: "'Quicksand', 'Nunito', sans-serif",
-    fontSize: 27,
+    fontSize: 26,
     textColor: '#2D3748',
     aspectRatio: 'original', // 'original', '1:1', '4:5', '9:16'
     currentFilter: 'none',
-    stickers: [], // [{ id, emoji, x, y, size, rotation }]
+    stickers: [],
     autoStickers: true
 };
 
@@ -25,25 +26,21 @@ let draggedStickerIndex = -1;
 let dragStartX = 0;
 let dragStartY = 0;
 
-// Khởi tạo ứng dụng khi DOM sẵn sàng
+// Khởi tạo
 document.addEventListener('DOMContentLoaded', () => {
     canvas = document.getElementById('photoCanvas');
     ctx = canvas.getContext('2d');
 
-    // Khởi tạo kho câu nói ngẫu nhiên
     pickNewQuote();
-    
-    // Khởi tạo các sự kiện giao diện
     initEvents();
     renderFramesGrid();
     renderOverlayGrid();
     renderStickerPalette();
 
-    // Tự động load ảnh mẫu để người dùng thấy ngay thành quả
     loadSampleImage();
 });
 
-// Load ảnh mẫu ban đầu mang phong cách thẩm mỹ dịu dàng
+// Load ảnh mẫu ban đầu
 function loadSampleImage() {
     const sampleImg = new Image();
     sampleImg.crossOrigin = 'anonymous';
@@ -53,27 +50,24 @@ function loadSampleImage() {
     tempCanvas.height = 1100;
     const tCtx = tempCanvas.getContext('2d');
 
-    // Nền màu kem ấm / pastel Hàn Quốc
+    // Nền màu kem ấm Hàn Quốc
     const grad = tCtx.createLinearGradient(0, 0, 900, 1100);
-    grad.addColorStop(0, '#EAE5D9');
-    grad.addColorStop(0.5, '#F7F2E7');
+    grad.addColorStop(0, '#E8E3D7');
+    grad.addColorStop(0.5, '#F7F3EA');
     grad.addColorStop(1, '#DCE4DB');
     tCtx.fillStyle = grad;
     tCtx.fillRect(0, 0, 900, 1100);
 
-    // Vòng tròn ánh sáng dịu
     tCtx.beginPath();
     tCtx.arc(450, 430, 200, 0, Math.PI * 2);
-    tCtx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    tCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     tCtx.fill();
 
-    // Biểu tượng nhánh lá tinh khôi
     tCtx.font = '150px sans-serif';
     tCtx.textAlign = 'center';
     tCtx.textBaseline = 'middle';
     tCtx.fillText('🌿', 450, 420);
 
-    // Chữ minh họa
     tCtx.font = 'bold 38px "Nunito", sans-serif';
     tCtx.fillStyle = '#4A4A48';
     tCtx.shadowColor = 'rgba(0,0,0,0.15)';
@@ -81,7 +75,7 @@ function loadSampleImage() {
     tCtx.fillText('Ảnh Của Bạn Sẽ Nổi Bật Ở Đây ✨', 450, 680);
     tCtx.font = '600 23px "Nunito", sans-serif';
     tCtx.fillStyle = '#6E6E6A';
-    tCtx.fillText('(Bấm "Tải Ảnh Của Bạn" ở trên để chọn ảnh nhé)', 450, 735);
+    tCtx.fillText('(Bấm "Tải Ảnh Của Bạn" ở trên để chọn ảnh)', 450, 735);
 
     sampleImg.onload = () => {
         state.image = sampleImg;
@@ -91,7 +85,7 @@ function loadSampleImage() {
     sampleImg.src = tempCanvas.toDataURL();
 }
 
-// Khởi tạo các sự kiện
+// Khởi tạo các sự kiện giao diện
 function initEvents() {
     const fileInput = document.getElementById('imageFileInput');
     const uploadBtn = document.getElementById('uploadPhotoBtn');
@@ -141,10 +135,20 @@ function initEvents() {
         });
     });
 
-    // Lọc chủ đề câu nói
-    document.querySelectorAll('.chip').forEach(chip => {
+    // Lọc thể loại khung ảnh (Tất cả, Pop-up Canva, Khung Lồng, Hàn Quốc)
+    document.querySelectorAll('.frame-filter-chip').forEach(chip => {
         chip.addEventListener('click', () => {
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.frame-filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            state.currentFrameCategory = chip.getAttribute('data-frame-cat');
+            renderFramesGrid();
+        });
+    });
+
+    // Lọc chủ đề câu nói
+    document.querySelectorAll('.quote-filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.quote-filter-chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
             state.quoteCategory = chip.getAttribute('data-cat');
             pickNewQuote();
@@ -152,7 +156,7 @@ function initEvents() {
         });
     });
 
-    // Quick buttons
+    // Nút Quick action
     const randomQuoteBtn = document.getElementById('randomQuoteBtn');
     if (randomQuoteBtn) {
         randomQuoteBtn.addEventListener('click', () => {
@@ -167,7 +171,7 @@ function initEvents() {
         randomFrameBtn.addEventListener('click', () => {
             const randomIdx = Math.floor(Math.random() * FRAME_PRESETS.length);
             selectFrame(FRAME_PRESETS[randomIdx].id);
-            showToast('Đã đổi kiểu khung pop-up mới! 🪟');
+            showToast('Đã đổi kiểu khung mới! 🪟');
         });
     }
 
@@ -184,11 +188,11 @@ function initEvents() {
     if (magicAllBtn) {
         magicAllBtn.addEventListener('click', () => {
             magicAutoDecorate();
-            showToast('✨ Đã phù phép hiệu ứng pop-up mới!');
+            showToast('✨ Đã phù phép kiểu khung lồng & pop-up mới!');
         });
     }
 
-    // Input text / quote
+    // Input text
     const quoteInput = document.getElementById('quoteTextInput');
     const authorInput = document.getElementById('authorTextInput');
     if (quoteInput) {
@@ -242,7 +246,6 @@ function initEvents() {
         });
     }
 
-    // Photo filters
     renderFilterButtons();
 
     // Clear stickers
@@ -278,7 +281,7 @@ function handleFileUpload(file) {
             state.image = img;
             state.imageLoaded = true;
             magicAutoDecorate();
-            showToast('Tải ảnh thành công! Đã tự động tạo hiệu ứng nổi 3D ✨');
+            showToast('Tải ảnh thành công! Đã tự động tạo hiệu ứng Canva & Hàn Quốc ✨');
         };
         img.src = e.target.result;
     };
@@ -298,30 +301,27 @@ function pickNewQuote() {
     if (aInput) aInput.value = q.author;
 }
 
-// Tạo icon tối giản thanh lịch (Chỉ 2-3 điểm nhấn tinh tế, không lạm dụng)
+// Tạo icon tối giản tinh tế (chỉ 2 điểm nhấn nhẹ nhàng)
 function generateRandomStickers() {
     state.stickers = [];
     if (!canvas) return;
 
     const w = canvas.width;
     const h = canvas.height;
-
     const randomPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
     
-    // Điểm nhấn 1: Góc trên bên phải hoặc bên trái
     state.stickers.push({
         id: 's_1',
-        emoji: randomPick(['✨', '🤍', '🌿', '🕊️', '⭐']),
+        emoji: randomPick(['✨', '🤍', '🌿', '🕊️', '⭐', '🍞']),
         x: Math.round(w * 0.88),
         y: Math.round(h * 0.10),
         size: Math.round(w * 0.065),
         rotation: (Math.random() * 0.2) - 0.1
     });
 
-    // Điểm nhấn 2: Lấp lánh tinh khôi cạnh thẻ chữ
     state.stickers.push({
         id: 's_2',
-        emoji: randomPick(['✨', '🌷', '☕', '🌙', '🍃']),
+        emoji: randomPick(['✨', '🌷', '☕', '🌙', '🍃', '✉️']),
         x: Math.round(w * 0.14),
         y: Math.round(h * 0.88),
         size: Math.round(w * 0.058),
@@ -333,17 +333,11 @@ function generateRandomStickers() {
 function magicAutoDecorate() {
     if (!state.imageLoaded) return;
 
-    // Chọn khung ngẫu nhiên
     const randomFrame = FRAME_PRESETS[Math.floor(Math.random() * FRAME_PRESETS.length)];
     selectFrame(randomFrame.id);
-
-    // Chọn câu nói mới
     pickNewQuote();
-
-    // Render kích thước
     renderCanvas();
 
-    // Đặt icon tối giản
     if (state.autoStickers) {
         generateRandomStickers();
     }
@@ -351,7 +345,6 @@ function magicAutoDecorate() {
     renderCanvas();
 }
 
-// Chọn khung
 function selectFrame(frameId) {
     state.currentFrameId = frameId;
     document.querySelectorAll('.frame-card').forEach(card => {
@@ -360,18 +353,22 @@ function selectFrame(frameId) {
     renderCanvas();
 }
 
-// Render danh sách Khung
 function renderFramesGrid() {
     const container = document.getElementById('framesGrid');
     if (!container) return;
 
+    let frames = FRAME_PRESETS;
+    if (state.currentFrameCategory && state.currentFrameCategory !== 'all') {
+        frames = FRAME_PRESETS.filter(f => f.category === state.currentFrameCategory);
+    }
+
     container.innerHTML = '';
-    FRAME_PRESETS.forEach(f => {
+    frames.forEach(f => {
         const card = document.createElement('div');
         card.className = `frame-card ${f.id === state.currentFrameId ? 'active' : ''}`;
         card.setAttribute('data-frame', f.id);
         card.innerHTML = `
-            <div class="frame-thumb" style="background: ${f.bgColor}; border: 1.5px solid ${f.borderColor || '#DDD'}">
+            <div class="frame-thumb" style="background: ${f.bgColor || '#F7F4EE'}; border: 1.5px solid ${f.borderColor || '#DDD'}">
                 ${f.name.split(' ')[0]}
             </div>
             <div class="frame-title">${f.name}</div>
@@ -381,7 +378,6 @@ function renderFramesGrid() {
     });
 }
 
-// Render chọn hiệu ứng nổi trong ảnh
 function renderOverlayGrid() {
     const container = document.getElementById('overlaysGrid');
     if (!container) return;
@@ -401,7 +397,6 @@ function renderOverlayGrid() {
     });
 }
 
-// Render bảng Icon Tinh Tế (Aesthetic Minimal Icons)
 function renderStickerPalette() {
     const container = document.getElementById('stickerPalette');
     if (!container) return;
@@ -453,9 +448,9 @@ function renderFilterButtons() {
     });
 }
 
-// ==========================================
-// VẼ TOÀN BỘ CANVAS POP-UP NỔI 3D & NGHỆ THUẬT
-// ==========================================
+// =========================================================================
+// VẼ CANVAS: KHUNG LỒNG CANVA, POP-UP WIDGET & PHONG CÁCH HÀN QUỐC
+// =========================================================================
 function renderCanvas() {
     if (!state.imageLoaded || !state.image) return;
 
@@ -474,8 +469,6 @@ function renderCanvas() {
         targetPhotoH = targetPhotoW * (16 / 9);
     }
 
-    // Xác định padding
-    const isGlassPopup = (frame.style === 'popup_glass');
     const padTop = Math.round(frame.padding.top * targetPhotoW);
     const padLeft = Math.round(frame.padding.left * targetPhotoW);
     const padRight = Math.round(frame.padding.right * targetPhotoW);
@@ -486,75 +479,507 @@ function renderCanvas() {
 
     canvas.width = totalW;
     canvas.height = totalH;
-
     ctx.clearRect(0, 0, totalW, totalH);
-
-    // 1. Nền canvas tổng thể
-    ctx.fillStyle = frame.bgColor || '#FAF8F5';
-    ctx.fillRect(0, 0, totalW, totalH);
 
     const photoX = padLeft;
     const photoY = padTop;
 
-    // 2. HIỆU ỨNG ĐỔ BÓNG NỔI KHỐI 3D CHO ẢNH (DEEP 3D AMBIENT SHADOW)
-    drawPhoto3DShadow(photoX, photoY, targetPhotoW, targetPhotoH);
+    // --- PHÂN NHÁNH RENDER THEO TỪNG PHONG CÁCH ---
 
-    // 3. Vẽ bức ảnh (được crop & áp dụng bộ lọc màu)
-    drawFilteredPhoto(state.image, photoX, photoY, targetPhotoW, targetPhotoH, frame);
+    if (frame.style === 'canva_blur') {
+        // 1. KHUNG LỒNG CANVA: NỀN LÀ ẢNH PHÓNG TO MỜ HUYỀN ẢO
+        drawCanvaBlurNested(photoX, photoY, targetPhotoW, targetPhotoH, totalW, totalH, frame);
 
-    // 4. HIỆU ỨNG NỔI TRỰC TIẾP TRONG LÒNG ẢNH (IN-PHOTO OVERLAY POP-UP)
-    drawInPhotoOverlays(photoX, photoY, targetPhotoW, targetPhotoH, frame);
+    } else if (frame.style === 'double_tilt') {
+        // 2. KHUNG LỒNG XẾP CHỒNG 2 LỚP SO LE NGHIÊNG
+        drawDoubleTiltNested(photoX, photoY, targetPhotoW, targetPhotoH, totalW, totalH, frame);
 
-    // 5. CÁC CHI TIẾT NỔI ĐÈ LÊN MÉP ẢNH (KẸP GIẤY 3D, TEM BƯU ĐIỆN, BĂNG DÍNH BÁN TRONG SUỐT)
-    drawEdgeOverlapDecorations(photoX, photoY, targetPhotoW, targetPhotoH, frame, totalW, totalH);
+    } else if (frame.style === 'music_player') {
+        // 3. POP-UP TRÌNH PHÁT NHẠC SPOTIFY / APPLE MUSIC
+        drawMusicPlayerPopUp(photoX, photoY, targetPhotoW, targetPhotoH, totalW, totalH, frame);
 
-    // 6. VẼ CÂU NÓI & THƠ:
-    // Nếu là kiểu Popup Glass -> Thẻ kính mờ nổi đè lên góc dưới của ảnh
-    // Nếu là kiểu thông thường -> Vẽ ở khoảng trống dưới ảnh
-    if (isGlassPopup) {
+    } else if (frame.style === 'ios_notify') {
+        // 4. POP-UP TIN NHẮN THÔNG BÁO IPHONE KÍNH MỜ
+        drawIOSNotificationPopUp(photoX, photoY, targetPhotoW, targetPhotoH, totalW, totalH, frame);
+
+    } else if (frame.style === 'macos_window') {
+        // 5. CỬA SỔ RETRO MAC OS POP-UP
+        drawMacOSWindowPopUp(photoX, photoY, targetPhotoW, targetPhotoH, totalW, totalH, frame);
+
+    } else if (frame.style === 'korean_photobooth') {
+        // 6. KHUNG MÁY CHỤP ẢNH LẤY LIỀN HÀN QUỐC (LIFE4CUTS / HARU FILM)
+        drawKoreanPhotobooth(photoX, photoY, targetPhotoW, targetPhotoH, totalW, totalH, frame);
+
+    } else if (frame.style === 'korean_magazine') {
+        // 7. BÌA TẠP CHÍ EDITORIAL HÀN QUỐC KINFOLK
+        drawKoreanMagazine(photoX, photoY, targetPhotoW, targetPhotoH, totalW, totalH, frame);
+
+    } else if (frame.style === 'popup_glass') {
+        // 8. THẺ KÍNH MỜ POP-UP 3D GLASSMORPHISM
+        drawStandardFrameBackground(totalW, totalH, frame);
+        drawPhoto3DShadow(photoX, photoY, targetPhotoW, targetPhotoH);
+        drawFilteredPhoto(state.image, photoX, photoY, targetPhotoW, targetPhotoH, 14);
+        drawMetallicPaperClip(photoX + 45, photoY - 12, 38, 92);
         drawGlassmorphismQuoteBox(photoX, photoY, targetPhotoW, targetPhotoH);
+
     } else {
-        const quoteBoxX = padLeft;
-        const quoteBoxY = photoY + targetPhotoH;
-        const quoteBoxW = targetPhotoW;
-        const quoteBoxH = padBottom;
-        drawStandardQuote(quoteBoxX, quoteBoxY, quoteBoxW, quoteBoxH, frame);
+        // 9. CÁC KHUNG POSTCARD / POLAROID / FILM
+        drawStandardFrameBackground(totalW, totalH, frame);
+        drawPhoto3DShadow(photoX, photoY, targetPhotoW, targetPhotoH);
+        drawFilteredPhoto(state.image, photoX, photoY, targetPhotoW, targetPhotoH, 12);
+        drawEdgeDecorations(photoX, photoY, targetPhotoW, targetPhotoH, frame);
+        drawStandardQuote(photoX, photoY + targetPhotoH, targetPhotoW, padBottom, frame);
     }
 
-    // 7. Vẽ biểu tượng Sticker tinh tế
+    // Hiệu ứng nắng / bụi sao nếu có bật
+    drawInPhotoOverlays(photoX, photoY, targetPhotoW, targetPhotoH, frame);
+
+    // Vẽ sticker icon tinh tế
     drawStickers();
 }
 
-// Đổ bóng nổi 3D đa tầng cho ảnh (tạo cảm giác ảnh bay nổi trên bề mặt)
+// -------------------------------------------------------------
+// 1. KHUNG LỒNG CANVA (Nền mờ ảo diệu + Ảnh chính lồng ở giữa nổi khối)
+// -------------------------------------------------------------
+function drawCanvaBlurNested(px, py, pw, ph, tw, th, frame) {
+    ctx.save();
+
+    // Bước 1: Vẽ nền phóng to bằng chính ảnh người dùng với hiệu ứng Blur cực mượt
+    ctx.filter = 'blur(28px) brightness(0.88) saturate(1.25)';
+    ctx.drawImage(state.image, -50, -50, tw + 100, th + 100);
+    ctx.filter = 'none';
+
+    // Phủ lớp màn mờ trắng kem sang trọng
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.fillRect(0, 0, tw, th);
+
+    // Bước 2: Khung lồng ảnh chính ở giữa với viền trắng và bóng đổ 3D sâu
+    const innerW = pw * 0.90;
+    const innerH = ph * 0.90;
+    const innerX = (tw - innerW) / 2;
+    const innerY = py + 20;
+
+    // Đổ bóng 3D sâu cho tấm ảnh lồng
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.32)';
+    ctx.shadowBlur = 35;
+    ctx.shadowOffsetY = 18;
+    ctx.fillStyle = '#FFFFFF';
+    drawRoundedRect(ctx, innerX - 10, innerY - 10, innerW + 20, innerH + 20, 18);
+    ctx.fill();
+
+    // Tắt shadow để vẽ ảnh sắc nét
+    ctx.shadowColor = 'transparent';
+    drawFilteredPhoto(state.image, innerX, innerY, innerW, innerH, 12);
+
+    // Thẻ chữ kính mờ đè nhẹ lên góc dưới của ảnh lồng
+    drawGlassmorphismQuoteBox(innerX, innerY, innerW, innerH);
+
+    ctx.restore();
+}
+
+// -------------------------------------------------------------
+// 2. KHUNG LỒNG XẾP CHỒNG (Double Offset Layered Frame)
+// -------------------------------------------------------------
+function drawDoubleTiltNested(px, py, pw, ph, tw, th, frame) {
+    ctx.save();
+    ctx.fillStyle = '#FAF7F2';
+    ctx.fillRect(0, 0, tw, th);
+
+    // Tấm lồng bên dưới (Tấm 1: Nghiêng nhẹ -3.5° màu kem pastel)
+    ctx.save();
+    ctx.translate(tw / 2, th * 0.42);
+    ctx.rotate(-0.06);
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 12;
+    ctx.fillStyle = '#FFF8EE';
+    drawRoundedRect(ctx, -pw * 0.48, -ph * 0.48, pw * 0.96, ph * 0.96, 16);
+    ctx.fill();
+    ctx.strokeStyle = '#EADECF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+
+    // Tấm ảnh chính ở trên (Tấm 2: Nghiêng nhẹ +1.2° nổi khối)
+    ctx.save();
+    ctx.translate(tw / 2, th * 0.42);
+    ctx.rotate(0.02);
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 16;
+    ctx.fillStyle = '#FFFFFF';
+    drawRoundedRect(ctx, -pw * 0.47, -ph * 0.47, pw * 0.94, ph * 0.94, 14);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+
+    drawFilteredPhoto(state.image, -pw * 0.47 + 10, -ph * 0.47 + 10, pw * 0.94 - 20, ph * 0.94 - 20, 10);
+    ctx.restore();
+
+    // Miếng băng dính Washi kẹp giữ mép trên của 2 tấm ảnh
+    drawSemiTransparentTape(tw / 2 - 55, py + 10, 110, 36, 0.05);
+
+    // Câu nói bên dưới
+    const quoteBoxY = py + ph + 10;
+    const quoteBoxH = th - quoteBoxY - 20;
+    drawStandardQuote(px, quoteBoxY, pw, quoteBoxH, frame);
+
+    ctx.restore();
+}
+
+// -------------------------------------------------------------
+// 3. POP-UP TRÌNH PHÁT NHẠC (Spotify / Apple Music Glass Widget)
+// -------------------------------------------------------------
+function drawMusicPlayerPopUp(px, py, pw, ph, tw, th, frame) {
+    ctx.save();
+    ctx.fillStyle = '#F5F3EF';
+    ctx.fillRect(0, 0, tw, th);
+
+    // Ảnh chính đổ bóng 3D
+    drawPhoto3DShadow(px, py, pw, ph);
+    drawFilteredPhoto(state.image, px, py, pw, ph, 14);
+
+    // Widget trình phát nhạc kính mờ nổi đè lên 1/3 dưới ảnh
+    const widgetW = pw * 0.92;
+    const widgetH = ph * 0.35;
+    const widgetX = px + (pw - widgetW) / 2;
+    const widgetY = py + ph - widgetH - 24;
+
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+    ctx.shadowBlur = 28;
+    ctx.shadowOffsetY = 14;
+
+    // Nền kính mờ
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    drawRoundedRect(ctx, widgetX, widgetY, widgetW, widgetH, 22);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.shadowColor = 'transparent';
+
+    // Nội dung bài hát: Tựa đề & Tác giả
+    const text = state.customQuoteText || (state.currentQuote ? state.currentQuote.text : '');
+    const author = state.customAuthorText || (state.currentQuote ? state.currentQuote.author : 'Giai điệu bình yên');
+
+    // Icon đĩa nhạc hoặc trái tim nhỏ ở góc trái
+    ctx.font = '36px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎵', widgetX + 24, widgetY + 40);
+
+    ctx.font = 'bold 22px "Nunito", sans-serif';
+    ctx.fillStyle = '#1A202C';
+    ctx.fillText(author, widgetX + 75, widgetY + 32);
+
+    ctx.font = '500 16px "Nunito", sans-serif';
+    ctx.fillStyle = '#718096';
+    ctx.fillText('Đang phát thông điệp yêu thương ✨', widgetX + 75, widgetY + 54);
+
+    // Trích dẫn câu nói / bài thơ ở giữa widget
+    ctx.font = `600 ${Math.round(state.fontSize * 0.85)}px ${state.fontFamily}`;
+    ctx.fillStyle = '#2D3748';
+    ctx.textAlign = 'center';
+    
+    const lines = text.split('\n');
+    const firstLine = lines[0] || '';
+    const secondLine = lines[1] || '';
+    ctx.fillText(firstLine, widgetX + widgetW / 2, widgetY + widgetH * 0.48);
+    if (secondLine) {
+        ctx.fillText(secondLine, widgetX + widgetW / 2, widgetY + widgetH * 0.62);
+    }
+
+    // Thanh thời lượng bài hát (Timeline Progress Bar)
+    const barX = widgetX + 28;
+    const barW = widgetW - 56;
+    const barY = widgetY + widgetH * 0.74;
+
+    ctx.fillStyle = '#E2E8F0';
+    drawRoundedRect(ctx, barX, barY, barW, 6, 3);
+    ctx.fill();
+
+    // Đoạn đã phát (màu hồng cam pastel gradient)
+    const progressW = barW * 0.62;
+    ctx.fillStyle = '#FF6B8B';
+    drawRoundedRect(ctx, barX, barY, progressW, 6, 3);
+    ctx.fill();
+
+    // Nút tròn kéo bài hát (Scrub knob)
+    ctx.beginPath();
+    ctx.arc(barX + progressW, barY + 3, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#FF4071';
+    ctx.fill();
+
+    // Giờ hiển thị
+    ctx.font = '600 13px monospace';
+    ctx.fillStyle = '#A0AEC0';
+    ctx.textAlign = 'left';
+    ctx.fillText('1:42', barX, barY + 18);
+    ctx.textAlign = 'right';
+    ctx.fillText('3:58', barX + barW, barY + 18);
+
+    // Cụm nút Play / Pause / Next ở dưới
+    const btnY = widgetY + widgetH * 0.88;
+    ctx.textAlign = 'center';
+    ctx.font = '20px sans-serif';
+    ctx.fillStyle = '#4A5568';
+    ctx.fillText('⏮', widgetX + widgetW / 2 - 60, btnY);
+    ctx.fillText('⏭', widgetX + widgetW / 2 + 60, btnY);
+
+    // Nút Play tròn nổi bật
+    ctx.beginPath();
+    ctx.arc(widgetX + widgetW / 2, btnY, 18, 0, Math.PI * 2);
+    ctx.fillStyle = '#FF6B8B';
+    ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '16px sans-serif';
+    ctx.fillText('▶', widgetX + widgetW / 2 + 1, btnY + 1);
+
+    ctx.restore();
+}
+
+// -------------------------------------------------------------
+// 4. POP-UP THÔNG BÁO IPHONE KÍNH MỜ (iOS Notification Banner)
+// -------------------------------------------------------------
+function drawIOSNotificationPopUp(px, py, pw, ph, tw, th, frame) {
+    ctx.save();
+    ctx.fillStyle = '#F0EFEB';
+    ctx.fillRect(0, 0, tw, th);
+
+    drawPhoto3DShadow(px, py, pw, ph);
+    drawFilteredPhoto(state.image, px, py, pw, ph, 16);
+
+    // Khung thông báo iPhone kính mờ nổi đè lên ảnh
+    const bannerW = pw * 0.90;
+    const bannerH = ph * 0.28;
+    const bannerX = px + (pw - bannerW) / 2;
+    const bannerY = py + ph - bannerH - 28;
+
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+    ctx.shadowBlur = 25;
+    ctx.shadowOffsetY = 12;
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+    drawRoundedRect(ctx, bannerX, bannerY, bannerW, bannerH, 24);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+    ctx.shadowColor = 'transparent';
+
+    // Header thông báo: Icon + App Name + Thời gian
+    ctx.font = '26px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💌', bannerX + 22, bannerY + 34);
+
+    ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
+    ctx.fillStyle = '#4A5568';
+    ctx.fillText('THÔNG ĐIỆP HÔM NAY', bannerX + 62, bannerY + 34);
+
+    ctx.font = '500 13px -apple-system, sans-serif';
+    ctx.fillStyle = '#A0AEC0';
+    ctx.textAlign = 'right';
+    ctx.fillText('bây giờ', bannerX + bannerW - 24, bannerY + 34);
+
+    // Nội dung thông điệp
+    const text = state.customQuoteText || (state.currentQuote ? state.currentQuote.text : '');
+    const author = state.customAuthorText || (state.currentQuote ? state.currentQuote.author : 'Gửi bạn 🤍');
+
+    ctx.font = `600 ${Math.round(state.fontSize * 0.9)}px ${state.fontFamily}`;
+    ctx.fillStyle = '#1A202C';
+    ctx.textAlign = 'center';
+
+    const lines = text.split('\n');
+    const startY = bannerY + 78;
+    lines.slice(0, 2).forEach((l, i) => {
+        ctx.fillText(l, bannerX + bannerW / 2, startY + (i * 30));
+    });
+
+    ctx.font = 'italic 500 15px -apple-system, sans-serif';
+    ctx.fillStyle = '#718096';
+    ctx.fillText(`— ${author} —`, bannerX + bannerW / 2, bannerY + bannerH - 24);
+
+    ctx.restore();
+}
+
+// -------------------------------------------------------------
+// 5. CỬA SỔ RETRO MAC OS POP-UP (Canva Retro Mac Window)
+// -------------------------------------------------------------
+function drawMacOSWindowPopUp(px, py, pw, ph, tw, th, frame) {
+    ctx.save();
+    ctx.fillStyle = '#EAE6DF';
+    ctx.fillRect(0, 0, tw, th);
+
+    const winW = pw + 20;
+    const winH = ph + 130;
+    const winX = px - 10;
+    const winY = py - 40;
+
+    // Đổ bóng 3D của cửa sổ Mac
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+    ctx.shadowBlur = 30;
+    ctx.shadowOffsetY = 16;
+
+    // Thân cửa sổ
+    ctx.fillStyle = '#FFFFFF';
+    drawRoundedRect(ctx, winX, winY, winW, winH, 16);
+    ctx.fill();
+
+    // Thanh tiêu đề (Title Bar)
+    ctx.fillStyle = '#F5F5F7';
+    drawRoundedRect(ctx, winX, winY, winW, 46, 16);
+    ctx.fill();
+    ctx.fillRect(winX, winY + 30, winW, 16); // làm phẳng góc dưới của thanh tiêu đề
+
+    ctx.strokeStyle = '#E5E5EA';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(winX, winY + 46);
+    ctx.lineTo(winX + winW, winY + 46);
+    ctx.stroke();
+
+    // 3 nút Mac OS: Đỏ, Vàng, Xanh
+    const dots = [
+        { color: '#FF5F56', x: winX + 22 },
+        { color: '#FFBD2E', x: winX + 42 },
+        { color: '#27C93F', x: winX + 62 }
+    ];
+    dots.forEach(d => {
+        ctx.beginPath();
+        ctx.arc(d.x, winY + 23, 6.5, 0, Math.PI * 2);
+        ctx.fillStyle = d.color;
+        ctx.fill();
+    });
+
+    // Tiêu đề cửa sổ
+    ctx.font = '600 15px -apple-system, monospace';
+    ctx.fillStyle = '#6E6E73';
+    ctx.textAlign = 'center';
+    ctx.fillText('today_aesthetic_moment.jpg', winX + winW / 2, winY + 24);
+
+    ctx.shadowColor = 'transparent';
+
+    // Vẽ ảnh bên trong cửa sổ
+    drawFilteredPhoto(state.image, px, py + 16, pw, ph - 20, 8);
+
+    // Câu nói ở chân cửa sổ
+    const quoteY = py + ph + 8;
+    drawStandardQuote(px, quoteY, pw, 70, frame);
+
+    ctx.restore();
+}
+
+// -------------------------------------------------------------
+// 6. KHUNG MÁY CHỤP ẢNH LẤY LIỀN HÀN QUỐC (Life4Cuts / Haru Film)
+// -------------------------------------------------------------
+function drawKoreanPhotobooth(px, py, pw, ph, tw, th, frame) {
+    ctx.save();
+
+    // Nền màu pastel bơ sữa / xanh pastel đặc trưng của Hàn Quốc
+    ctx.fillStyle = frame.bgColor || '#FFF7E6';
+    ctx.fillRect(0, 0, tw, th);
+
+    // Bo tròn viền ảnh dày và mềm mại
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 8;
+    ctx.fillStyle = '#FFFFFF';
+    drawRoundedRect(ctx, px - 6, py - 6, pw + 12, ph + 12, 18);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+
+    // Ảnh chính bo góc tròn ngọt ngào
+    drawFilteredPhoto(state.image, px, py, pw, ph, 16);
+
+    // Khu vực đáy phong cách Seoul Photobooth
+    const botY = py + ph;
+    const botH = th - botY;
+
+    // Câu nói / Thơ ngắn
+    drawStandardQuote(px, botY + 10, pw, botH * 0.65, frame);
+
+    // Logo thương hiệu Studio Hàn Quốc ở góc dưới
+    ctx.font = 'bold 15px "Nunito", sans-serif';
+    ctx.fillStyle = '#A0AEC0';
+    ctx.textAlign = 'center';
+    ctx.fillText(frame.brandText || 'STUDIO PHOTOISM SEOUL • 인생네컷', tw / 2, th - 26);
+
+    // Tem barcode mini phong cách Hàn Quốc ở góc phải
+    drawMiniBarcode(tw - 100, th - 40, 65, 22);
+
+    ctx.restore();
+}
+
+// -------------------------------------------------------------
+// 7. BÌA TẠP CHÍ EDITORIAL HÀN QUỐC (Kinfolk / Cereal Cover)
+// -------------------------------------------------------------
+function drawKoreanMagazine(px, py, pw, ph, tw, th, frame) {
+    ctx.save();
+    ctx.fillStyle = '#FAF9F6';
+    ctx.fillRect(0, 0, tw, th);
+
+    // Tiêu đề tạp chí lớn trên cùng (Kinfolk style)
+    ctx.font = 'bold 36px "Playfair Display", serif';
+    ctx.fillStyle = '#1A202C';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '6px';
+    ctx.fillText('A E S T H E T I C', tw / 2, py - 40);
+
+    // Số phát hành
+    ctx.font = '500 13px -apple-system, sans-serif';
+    ctx.fillStyle = '#A0AEC0';
+    ctx.fillText('ISSUE NO. 10 • AUTUMN MOMENTS', tw / 2, py - 16);
+
+    // Ảnh lồng viền mỏng thanh lịch
+    drawPhoto3DShadow(px, py, pw, ph);
+    drawFilteredPhoto(state.image, px, py, pw, ph, 8);
+
+    // Trích dẫn phong cách bài viết tạp chí
+    const quoteY = py + ph + 14;
+    const quoteH = th - quoteY - 20;
+    drawStandardQuote(px, quoteY, pw, quoteH, frame);
+
+    ctx.restore();
+}
+
+// -------------------------------------------------------------
+// CÁC HÀM TIỆN ÍCH VẼ NỀN & DECOR
+// -------------------------------------------------------------
+
+function drawStandardFrameBackground(tw, th, frame) {
+    ctx.fillStyle = frame.bgColor || '#FAF8F5';
+    ctx.fillRect(0, 0, tw, th);
+
+    if (frame.borderColor) {
+        ctx.strokeStyle = frame.borderColor;
+        ctx.lineWidth = frame.borderWidth || 2;
+        ctx.strokeRect(10, 10, tw - 20, th - 20);
+    }
+}
+
 function drawPhoto3DShadow(x, y, w, h) {
     ctx.save();
-    
-    // Tầng bóng 1: Bóng loang rộng mềm mại
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.16)';
     ctx.shadowBlur = 28;
     ctx.shadowOffsetY = 16;
     ctx.fillStyle = '#FFFFFF';
     drawRoundedRect(ctx, x, y, w, h, 14);
     ctx.fill();
 
-    // Tầng bóng 2: Bóng tiếp xúc gần sắc nét
     ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 6;
     ctx.fill();
-
     ctx.restore();
 }
 
-// Vẽ ảnh người dùng vào khung
-function drawFilteredPhoto(img, x, y, w, h, frame) {
+function drawFilteredPhoto(img, x, y, w, h, radius = 12) {
     ctx.save();
-
-    const photoRadius = frame.borderRadius ? Math.round(frame.borderRadius * (w / 750)) : 12;
-    drawRoundedRect(ctx, x, y, w, h, photoRadius);
+    drawRoundedRect(ctx, x, y, w, h, radius);
     ctx.clip();
 
-    // Áp dụng bộ lọc
     let filterString = '';
     switch (state.currentFilter) {
         case 'bright_sweet':
@@ -577,7 +1002,6 @@ function drawFilteredPhoto(img, x, y, w, h, frame) {
     }
     ctx.filter = filterString;
 
-    // Crop Cover
     const imgRatio = img.width / img.height;
     const targetRatio = w / h;
 
@@ -593,127 +1017,48 @@ function drawFilteredPhoto(img, x, y, w, h, frame) {
     ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
     ctx.filter = 'none';
 
-    // Viền trắng tinh khôi bo quanh ảnh
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     ctx.restore();
 }
 
-// ==========================================
-// CÁC HIỆU ỨNG NỔI TRỰC TIẾP TRONG LÒNG BỨC ẢNH
-// ==========================================
-function drawInPhotoOverlays(px, py, pw, ph, frame) {
-    const effect = (state.overlayEffect === 'auto') ? (frame.overlayType || 'none') : state.overlayEffect;
-    if (effect === 'none') return;
-
+// Băng dính mờ Washi
+function drawSemiTransparentTape(x, y, w, h, angle) {
     ctx.save();
-    // Giới hạn trong phạm vi ảnh
-    drawRoundedRect(ctx, px, py, pw, ph, 12);
-    ctx.clip();
+    ctx.translate(x + w / 2, y + h / 2);
+    ctx.rotate(angle);
 
-    if (effect === 'sunbeam') {
-        // Vệt nắng ấm xiên qua ảnh từ góc trên trái
-        const sunGrad = ctx.createLinearGradient(px, py, px + pw * 0.85, py + ph * 0.7);
-        sunGrad.addColorStop(0, 'rgba(255, 240, 200, 0.42)');
-        sunGrad.addColorStop(0.3, 'rgba(255, 225, 175, 0.22)');
-        sunGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.08)');
-        sunGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = sunGrad;
-        ctx.fillRect(px, py, pw, ph);
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.14)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 3;
 
-        // Bụi sao / hạt bụi nắng lơ lửng trong vệt nắng
-        drawSunlightDust(px, py, pw, ph);
+    ctx.fillStyle = 'rgba(254, 243, 199, 0.78)';
+    ctx.beginPath();
+    ctx.moveTo(-w / 2, -h / 2);
+    ctx.lineTo(w / 2, -h / 2);
+    ctx.lineTo(w / 2 - 3, 0);
+    ctx.lineTo(w / 2, h / 2);
+    ctx.lineTo(-w / 2, h / 2);
+    ctx.lineTo(-w / 2 + 3, 0);
+    ctx.closePath();
+    ctx.fill();
 
-    } else if (effect === 'sparkles_dust') {
-        // Bụi sao lấp lánh nhẹ nhàng
-        drawSunlightDust(px, py, pw, ph);
-
-    } else if (effect === 'film_leak') {
-        // Vệt sáng rò phim (Film light leak) màu cam đỏ hoài niệm
-        const leakGrad = ctx.createRadialGradient(px + pw, py + ph * 0.4, 10, px + pw, py + ph * 0.4, pw * 0.6);
-        leakGrad.addColorStop(0, 'rgba(255, 120, 60, 0.35)');
-        leakGrad.addColorStop(0.5, 'rgba(255, 180, 50, 0.15)');
-        leakGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = leakGrad;
-        ctx.fillRect(px, py, pw, ph);
-
-        // Tem date hoài niệm góc phim
-        ctx.font = 'bold 22px monospace';
-        ctx.fillStyle = '#FFA500';
-        ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.shadowBlur = 6;
-        ctx.fillText("'26 10 25", px + 24, py + ph - 24);
-    }
-
-    ctx.restore();
-}
-
-// Bụi nắng / sao lấp lánh trong ảnh
-function drawSunlightDust(px, py, pw, ph) {
-    ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.shadowColor = 'rgba(255, 240, 200, 0.9)';
-    ctx.shadowBlur = 8;
-
-    const sparkles = [
-        { x: 0.2, y: 0.18, r: 2.5 },
-        { x: 0.35, y: 0.28, r: 1.8 },
-        { x: 0.28, y: 0.42, r: 3.0 },
-        { x: 0.45, y: 0.22, r: 2.0 },
-        { x: 0.52, y: 0.38, r: 2.2 },
-        { x: 0.68, y: 0.18, r: 1.6 }
-    ];
-
-    sparkles.forEach(s => {
-        const sx = px + pw * s.x;
-        const sy = py + ph * s.y;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.lineWidth = 1.5;
+    for (let i = -w / 2; i < w / 2; i += 12) {
         ctx.beginPath();
-        ctx.arc(sx, sy, s.r, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Vẽ tia sao 4 cánh nhỏ
-        if (s.r >= 2.2) {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
-            ctx.lineWidth = 1.2;
-            ctx.beginPath();
-            ctx.moveTo(sx - 7, sy);
-            ctx.lineTo(sx + 7, sy);
-            ctx.moveTo(sx, sy - 7);
-            ctx.lineTo(sx, sy + 7);
-            ctx.stroke();
-        }
-    });
-
+        ctx.moveTo(i, -h / 2);
+        ctx.lineTo(i + 14, h / 2);
+        ctx.stroke();
+    }
     ctx.restore();
 }
 
-// ==========================================
-// CHI TIẾT NỔI ĐÈ LÊN MÉP ẢNH (POP-UP 3D)
-// ==========================================
-function drawEdgeOverlapDecorations(px, py, pw, ph, frame, tw, th) {
-    // 1. Kẹp giấy kim loại 3D (Paperclip) kẹp vào góc ảnh
-    if (frame.hasPaperClip || frame.style === 'popup_glass') {
-        drawMetallicPaperClip(px + 45, py - 12, 38, 92);
-    }
-
-    // 2. Băng dính Washi mờ dán đè mép ảnh (có thể nhìn xuyên thấu mép ảnh bên dưới)
-    if (frame.hasWashiOverlap) {
-        drawSemiTransparentTape(px + pw - 90, py - 12, 110, 34, 0.22);
-    }
-
-    // 3. Tem bưu chính vintage & Dấu bưu điện tròn đóng đè mép ảnh
-    if (frame.overlayType === 'postal_stamp' || frame.style === 'postcard') {
-        drawPostageStampWithCancel(px + pw - 105, py + 25, 90, 110);
-    }
-}
-
-// Kẹp giấy kim loại 3D cao cấp (Metallic Paperclip)
+// Kẹp kim loại 3D
 function drawMetallicPaperClip(x, y, w, h) {
     ctx.save();
-    
-    // Bóng đổ của kẹp giấy xuống bề mặt ảnh
     ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 6;
@@ -723,7 +1068,6 @@ function drawMetallicPaperClip(x, y, w, h) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Kim loại ánh vàng Champagne sang trọng
     const metalGrad = ctx.createLinearGradient(x, y, x + w, y + h);
     metalGrad.addColorStop(0, '#E6C875');
     metalGrad.addColorStop(0.35, '#FFF2B2');
@@ -731,7 +1075,6 @@ function drawMetallicPaperClip(x, y, w, h) {
     metalGrad.addColorStop(1, '#9E782F');
     ctx.strokeStyle = metalGrad;
 
-    // Đường uốn lượn đặc trưng của kẹp ghim
     ctx.beginPath();
     ctx.moveTo(x + 10, y + h - 18);
     ctx.lineTo(x + 10, y + 20);
@@ -749,124 +1092,42 @@ function drawMetallicPaperClip(x, y, w, h) {
     ctx.restore();
 }
 
-// Băng dính bán trong suốt dán đè qua mép ảnh (Semi-transparent Washi Tape)
-function drawSemiTransparentTape(x, y, w, h, angle) {
+// Mã vạch mini cho phong cách Hàn Quốc
+function drawMiniBarcode(x, y, w, h) {
     ctx.save();
-    ctx.translate(x + w / 2, y + h / 2);
-    ctx.rotate(angle);
-
-    // Bóng đổ nhẹ
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.14)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 3;
-
-    // Màu kem/hồng pastel trong suốt (nhìn thấy được ảnh bên dưới)
-    ctx.fillStyle = 'rgba(254, 243, 199, 0.78)';
-
-    // Mép răng cưa
-    ctx.beginPath();
-    ctx.moveTo(-w / 2, -h / 2);
-    ctx.lineTo(w / 2, -h / 2);
-    ctx.lineTo(w / 2 - 3, 0);
-    ctx.lineTo(w / 2, h / 2);
-    ctx.lineTo(-w / 2, h / 2);
-    ctx.lineTo(-w / 2 + 3, 0);
-    ctx.closePath();
-    ctx.fill();
-
-    // Họa tiết sọc chéo mờ
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.lineWidth = 1.5;
-    for (let i = -w / 2; i < w / 2; i += 12) {
-        ctx.beginPath();
-        ctx.moveTo(i, -h / 2);
-        ctx.lineTo(i + 14, h / 2);
-        ctx.stroke();
+    ctx.fillStyle = '#CBD5E1';
+    for (let i = 0; i < w; i += 4) {
+        const barWidth = (i % 8 === 0) ? 2 : 1;
+        ctx.fillRect(x + i, y, barWidth, h);
     }
-
     ctx.restore();
 }
 
-// Tem bưu chính vintage & Dấu hủy tròn (Postage Stamp)
-function drawPostageStampWithCancel(x, y, w, h) {
-    ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetY = 5;
-
-    // Thân tem trắng kem
-    ctx.fillStyle = '#FFFDF7';
-    ctx.fillRect(x, y, w, h);
-
-    // Khung họa tiết bên trong tem
-    ctx.fillStyle = '#E8E2D5';
-    ctx.fillRect(x + 8, y + 8, w - 16, h - 16);
-
-    // Biểu tượng bên trong tem (Cành hoa tulip hoặc bồ câu)
-    ctx.font = '36px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🌷', x + w / 2, y + h / 2 - 6);
-
-    // Giá tem vintage
-    ctx.font = 'bold 12px serif';
-    ctx.fillStyle = '#7C7063';
-    ctx.fillText('AIR MAIL 10c', x + w / 2, y + h - 18);
-
-    // Dấu bưu điện tròn màu mực đen mờ đóng đè mép tem và mép ảnh
-    ctx.strokeStyle = 'rgba(50, 45, 40, 0.55)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(x - 12, y + h / 2, 34, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Các đường gợn sóng bưu điện
-    for (let i = -2; i <= 2; i++) {
-        ctx.beginPath();
-        ctx.moveTo(x + 15, y + h / 2 + (i * 7));
-        ctx.bezierCurveTo(x + 35, y + h / 2 + (i * 7) - 4, x + 55, y + h / 2 + (i * 7) + 4, x + 75, y + h / 2 + (i * 7));
-        ctx.stroke();
-    }
-
-    ctx.restore();
-}
-
-// ==========================================
-// THẺ KÍNH MỜ POP-UP NỔI TRỰC TIẾP LÊN ẢNH (GLASSMORPHISM POP-UP)
-// ==========================================
+// Thẻ kính mờ Pop-up 3D Glassmorphism
 function drawGlassmorphismQuoteBox(px, py, pw, ph) {
     const text = state.customQuoteText || (state.currentQuote ? state.currentQuote.text : '');
     const author = state.customAuthorText || (state.currentQuote ? state.currentQuote.author : '');
     if (!text) return;
 
     ctx.save();
-
-    // Kích thước thẻ kính mờ (nằm ở 1/3 dưới bức ảnh)
     const cardW = pw * 0.90;
     const cardH = ph * 0.28;
     const cardX = px + (pw - cardW) / 2;
     const cardY = py + ph - cardH - (ph * 0.04);
-    const cardRadius = 20;
 
-    // Đổ bóng 3D sâu cho thẻ kính mờ (tạo cảm giác bay nổi trên ảnh)
     ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
     ctx.shadowBlur = 24;
     ctx.shadowOffsetY = 12;
 
-    // Nền kính mờ (Frosted glass) trắng kem thanh lịch
     ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
-    drawRoundedRect(ctx, cardX, cardY, cardW, cardH, cardRadius);
+    drawRoundedRect(ctx, cardX, cardY, cardW, cardH, 20);
     ctx.fill();
 
-    // Viền sáng kính tinh khôi
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
     ctx.lineWidth = 2;
     ctx.stroke();
-
-    // Tắt bóng đổ để chữ sắc nét
     ctx.shadowColor = 'transparent';
 
-    // Vẽ câu nói vào giữa thẻ kính mờ
     ctx.fillStyle = state.textColor || '#2D3748';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -919,18 +1180,44 @@ function drawGlassmorphismQuoteBox(px, py, pw, ph) {
         ctx.fillStyle = '#718096';
         ctx.fillText(`— ${author} —`, centerX, authorY);
     }
-
     ctx.restore();
 }
 
-// Vẽ câu nói kiểu truyền thống ở đáy khung
+function drawEdgeDecorations(px, py, pw, ph, frame) {
+    if (frame.hasPaperClip) {
+        drawMetallicPaperClip(px + 45, py - 12, 38, 92);
+    }
+    if (frame.hasWashiOverlap) {
+        drawSemiTransparentTape(px + pw - 90, py - 12, 110, 34, 0.22);
+    }
+}
+
+function drawInPhotoOverlays(px, py, pw, ph, frame) {
+    const effect = (state.overlayEffect === 'auto') ? (frame.overlayType || 'none') : state.overlayEffect;
+    if (effect === 'none') return;
+
+    ctx.save();
+    drawRoundedRect(ctx, px, py, pw, ph, 12);
+    ctx.clip();
+
+    if (effect === 'sunbeam') {
+        const sunGrad = ctx.createLinearGradient(px, py, px + pw * 0.85, py + ph * 0.7);
+        sunGrad.addColorStop(0, 'rgba(255, 240, 200, 0.42)');
+        sunGrad.addColorStop(0.3, 'rgba(255, 225, 175, 0.22)');
+        sunGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.08)');
+        sunGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = sunGrad;
+        ctx.fillRect(px, py, pw, ph);
+    }
+    ctx.restore();
+}
+
 function drawStandardQuote(boxX, boxY, boxW, boxH, frame) {
     const text = state.customQuoteText || (state.currentQuote ? state.currentQuote.text : '');
     const author = state.customAuthorText || (state.currentQuote ? state.currentQuote.author : '');
     if (!text) return;
 
     ctx.save();
-
     const textColor = frame.textColor || state.textColor || '#2D3748';
     ctx.fillStyle = textColor;
     ctx.textAlign = 'center';
@@ -984,11 +1271,9 @@ function drawStandardQuote(boxX, boxY, boxW, boxH, frame) {
         ctx.fillStyle = frame.textColor ? 'rgba(255, 255, 255, 0.78)' : '#718096';
         ctx.fillText(`— ${author} —`, centerX, authorY);
     }
-
     ctx.restore();
 }
 
-// Vẽ stickers
 function drawStickers() {
     if (!state.stickers || state.stickers.length === 0) return;
 
@@ -1012,7 +1297,6 @@ function drawStickers() {
     ctx.restore();
 }
 
-// Kéo thả Sticker
 function setupCanvasInteractivity() {
     if (!canvas) return;
 
@@ -1084,7 +1368,6 @@ function setupCanvasInteractivity() {
     window.addEventListener('touchend', onPointerUp);
 }
 
-// Tải ảnh về máy
 function downloadProcessedPhoto() {
     if (!canvas || !state.imageLoaded) {
         alert('Vui lòng tải ảnh lên trước khi lưu!');
@@ -1096,7 +1379,7 @@ function downloadProcessedPhoto() {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, '0');
     const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const filename = `Anh_Popup_Art_${timestamp}.png`;
+    const filename = `Canva_Korean_Art_${timestamp}.png`;
 
     canvas.toBlob((blob) => {
         if (!blob) return;

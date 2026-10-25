@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tiệm Khung Ảnh Pop-up 3D & Thơ Nghệ Thuật</title>
-    <!-- Google Fonts phong cách tối giản thanh lịch -->
+    <title>Tiệm Khung Ảnh Lồng Canva & Pop-up Hàn Quốc</title>
+    <!-- Google Fonts phong cách thẩm mỹ thanh lịch -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;1,500&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
@@ -16,10 +16,10 @@
     <header>
         <div class="header-container">
             <div class="logo-group">
-                <div class="logo-badge">✨</div>
+                <div class="logo-badge">🎨</div>
                 <div class="logo-text">
-                    <h1>Tiệm Khung Ảnh Pop-up & Thơ Tinh Tế</h1>
-                    <p>Hiệu ứng nổi 3D đa tầng trong lòng ảnh, kính mờ bồng bềnh & icon tối giản dễ thương</p>
+                    <h1>Khung Lồng Canva & Pop-up Hàn Quốc</h1>
+                    <p>Khung lồng mờ nền, máy nghe nhạc pop-up, Life4Cuts Seoul & thơ chạm cảm xúc</p>
                 </div>
             </div>
 
@@ -29,7 +29,7 @@
                     📁 Tải Ảnh Của Bạn
                 </button>
                 <button class="btn btn-magic" id="magicAllBtn">
-                    ✨ Phù Phép Pop-up
+                    ✨ Phù Phép Mới
                 </button>
                 <button class="btn btn-primary" id="downloadPhotoBtn">
                     📥 Tải Ảnh Về Máy
@@ -41,20 +41,20 @@
     <!-- Main App Container -->
     <main class="app-container">
 
-        <!-- CỘT TRÁI: KHU VỰC PREVIEW ẢNH NỔI 3D -->
+        <!-- CỘT TRÁI: KHU VỰC PREVIEW ẢNH NỔI KHỐI -->
         <section class="preview-card">
             <div class="preview-toolbar">
                 <div class="preview-title">
-                    <span>✨ Ảnh Đã Tạo Hiệu Ứng Nổi 3D</span>
+                    <span>✨ Ảnh Đã Phối Nghệ Thuật</span>
                 </div>
                 <div class="quick-bar">
                     <button class="quick-btn" id="randomQuoteBtn" title="Đổi câu nói hoặc bài thơ khác">
                         🎲 Đổi câu thơ
                     </button>
-                    <button class="quick-btn" id="randomFrameBtn" title="Đổi kiểu khung pop-up khác">
-                        🪟 Đổi khung nổi
+                    <button class="quick-btn" id="randomFrameBtn" title="Đổi kiểu khung lồng / pop-up khác">
+                        🪟 Đổi khung
                     </button>
-                    <button class="quick-btn" id="randomStickersBtn" title="Đổi biểu tượng tinh tế">
+                    <button class="quick-btn" id="randomStickersBtn" title="Đổi icon tinh tế">
                         ✨ Đổi icon
                     </button>
                     <button class="quick-btn" id="changePhotoBtn" title="Chọn ảnh khác">
@@ -69,7 +69,7 @@
             </div>
 
             <div class="canvas-hint">
-                <span>💡 <strong>Mẹo:</strong> Bạn có thể dùng chuột kéo thả trực tiếp các biểu tượng trên ảnh để căn chỉnh vị trí đẹp mắt!</span>
+                <span>💡 <strong>Mẹo nhỏ:</strong> Bạn có thể dùng chuột kéo thả trực tiếp các biểu tượng trên ảnh để căn chỉnh vị trí theo ý muốn!</span>
             </div>
         </section>
 
@@ -83,22 +83,25 @@
                 <button class="tab-btn" data-tab="tab-effects">🎨 Bộ Lọc Màu</button>
             </div>
 
-            <!-- TAB 1: KHUNG ẢNH & HIỆU ỨNG POP-UP -->
+            <!-- TAB 1: BỘ SƯU TẬP KHUNG LỒNG & POP-UP -->
             <div class="tab-content active" id="tab-frames">
                 <div class="control-group">
                     <label class="control-label">
-                        <span>Kiểu khung Pop-up 3D</span>
+                        <span>Chủ đề khung nghệ thuật</span>
                     </label>
-                    <div class="frame-grid" id="framesGrid">
-                        <!-- Render từ frames.js -->
+                    <div class="category-chips">
+                        <button class="chip frame-filter-chip active" data-frame-cat="all">🌈 Tất Cả (12+)</button>
+                        <button class="chip frame-filter-chip" data-frame-cat="popup">🎵 Pop-up Canva</button>
+                        <button class="chip frame-filter-chip" data-frame-cat="nested">🖼️ Khung Lồng Nền Mờ</button>
+                        <button class="chip frame-filter-chip" data-frame-cat="korean">🧈 Hàn Quốc (Life4Cuts)</button>
                     </div>
                 </div>
 
                 <div class="control-group">
                     <label class="control-label">
-                        <span>Hiệu ứng nổi trực tiếp trong ảnh</span>
+                        <span>Chọn kiểu khung bạn thích</span>
                     </label>
-                    <div class="filters-grid" id="overlaysGrid" style="grid-template-columns: repeat(2, 1fr);">
+                    <div class="frame-grid" id="framesGrid">
                         <!-- Render từ frames.js -->
                     </div>
                 </div>
@@ -124,11 +127,11 @@
                         <span class="badge-pill">Ngẫu nhiên</span>
                     </label>
                     <div class="category-chips">
-                        <button class="chip active" data-cat="all">🌈 Tất Cả</button>
-                        <button class="chip" data-cat="dong_luc">☀️ Động Lực Tươi Vui</button>
-                        <button class="chip" data-cat="hai_huoc">☕ Hài Hước Yêu Đời</button>
-                        <button class="chip" data-cat="tho_ngan">🌸 Thơ Ngắn Hay</button>
-                        <button class="chip" data-cat="cam_xuc">🤍 Chạm Cảm Xúc</button>
+                        <button class="chip quote-filter-chip active" data-cat="all">🌈 Tất Cả</button>
+                        <button class="chip quote-filter-chip" data-cat="dong_luc">☀️ Động Lực Tươi Vui</button>
+                        <button class="chip quote-filter-chip" data-cat="hai_huoc">☕ Hài Hước Yêu Đời</button>
+                        <button class="chip quote-filter-chip" data-cat="tho_ngan">🌸 Thơ Ngắn Hay</button>
+                        <button class="chip quote-filter-chip" data-cat="cam_xuc">🤍 Chạm Cảm Xúc</button>
                     </div>
                 </div>
 
@@ -161,10 +164,10 @@
                 <div class="control-group">
                     <div class="control-label">
                         <span>Cỡ chữ</span>
-                        <span id="fontSizeValue" class="badge-pill">27px</span>
+                        <span id="fontSizeValue" class="badge-pill">26px</span>
                     </div>
                     <div class="slider-group">
-                        <input type="range" id="fontSizeSlider" class="slider-cute" min="18" max="44" value="27">
+                        <input type="range" id="fontSizeSlider" class="slider-cute" min="16" max="42" value="26">
                     </div>
                 </div>
 
