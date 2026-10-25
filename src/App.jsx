@@ -244,6 +244,7 @@ export default function App() {
           setSunbeamEffect={setSunbeamEffect}
           microRotate={microRotate}
           setMicroRotate={setMicroRotate}
+          showToast={showToast}
         />
 
         {/* Canvas Workspace */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Images, 
   LayoutTemplate, 
@@ -18,11 +18,17 @@ import {
   AlignCenter, 
   AlignRight, 
   Layers, 
-  ArrowLeftRight
+  ArrowLeftRight,
+  BookOpen,
+  Search,
+  Check,
+  X,
+  FileText
 } from 'lucide-react';
 import { TEMPLATES_DATA, FONT_OPTIONS, BACKGROUND_PALETTES } from '../data/templatesData';
-import { QUOTE_CATEGORIES, getRandomQuote } from '../data/quotesData';
+import { QUOTE_CATEGORIES, QUOTES_DATA, getRandomQuote, searchQuotes } from '../data/quotesData';
 import { STICKER_ITEMS, WASHI_TAPE_COLORS } from '../data/stickersData';
+import QuoteLibraryModal from './QuoteLibraryModal';
 
 export default function Sidebar({
   photos,
@@ -62,10 +68,22 @@ export default function Sidebar({
   sunbeamEffect,
   setSunbeamEffect,
   microRotate,
-  setMicroRotate
+  setMicroRotate,
+  showToast
 }) {
   const [activeTab, setActiveTab] = useState('templates');
   const [frameFilter, setFrameFilter] = useState('all');
+
+  // Modal và bộ lọc kho câu nói
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [quoteSearchTerm, setQuoteSearchTerm] = useState('');
+  const [quoteTypeFilter, setQuoteTypeFilter] = useState('all'); // 'all' | 'poetry' | 'quote'
+
+  // Danh sách preview câu nói nhanh trong sidebar
+  const quickQuotes = useMemo(() => {
+    let list = searchQuotes(quoteSearchTerm, quoteCategory, quoteTypeFilter);
+    return list.slice(0, 5);
+  }, [quoteSearchTerm, quoteCategory, quoteTypeFilter]);
 
   // Lọc danh sách khung
   const filteredTemplates = TEMPLATES_DATA.filter(t => {
@@ -352,47 +370,152 @@ export default function Sidebar({
         {/* ============================================================ */}
         {activeTab === 'quotes' && (
           <div className="space-y-4">
+            {/* Nút to mở Kho câu nói & thơ */}
+            <button
+              onClick={() => setIsQuoteModalOpen(true)}
+              className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-extrabold text-xs shadow-md shadow-rose-200 flex items-center justify-between transition-all hover:scale-[1.01] active:scale-98 group"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                  <BookOpen className="w-4 h-4 text-white" />
+                </div>
+                <div className="text-left">
+                  <div className="font-extrabold text-xs">Mở Kho Thơ & Câu Nói Bắt Trend</div>
+                  <div className="text-[10px] text-rose-100 font-normal">Hơn 80+ câu hài hước, thả thính, chữa lành</div>
+                </div>
+              </div>
+              <span className="bg-white/20 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
+                {QUOTES_DATA.length}+ câu
+              </span>
+            </button>
+
+            {/* Chủ đề câu nói & Nút đổi ngẫu nhiên */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Chủ đề câu nói</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Chủ đề ({QUOTE_CATEGORIES.length})
+                </label>
                 <button
                   onClick={() => {
-                    const q = getRandomQuote(quoteCategory);
+                    const q = getRandomQuote(quoteCategory, quoteTypeFilter);
                     setQuoteText(q.text);
                     setAuthorText(q.author);
+                    if (showToast) showToast(`Đã đổi câu ngẫu nhiên: "${q.author}" ✨`, 'info');
                   }}
                   className="inline-flex items-center gap-1 text-xs font-bold text-rose-500 hover:text-rose-600"
+                  title="Đổi câu nói ngẫu nhiên trong chủ đề đang chọn"
                 >
                   <Shuffle className="w-3.5 h-3.5" />
                   Đổi ngẫu nhiên
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-1.5">
+              {/* Grid các danh mục */}
+              <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-0.5 scrollbar-thin">
                 {QUOTE_CATEGORIES.map(cat => (
                   <button
                     key={cat.id}
                     onClick={() => {
                       setQuoteCategory(cat.id);
-                      const q = getRandomQuote(cat.id);
+                      const q = getRandomQuote(cat.id, quoteTypeFilter);
                       setQuoteText(q.text);
                       setAuthorText(q.author);
                     }}
-                    className={`p-2 rounded-xl text-xs font-bold text-left transition-all ${
+                    className={`p-2 rounded-xl text-xs font-bold text-left transition-all truncate flex items-center gap-1.5 ${
                       quoteCategory === cat.id
                         ? 'bg-rose-500 text-white shadow-sm'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
-                    {cat.name}
+                    <span className="truncate">{cat.name}</span>
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Lọc loại nội dung (Tất cả / Thơ ngắn / Caption) */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+              <button
+                onClick={() => setQuoteTypeFilter('all')}
+                className={`flex-1 py-1 rounded-lg transition-all ${
+                  quoteTypeFilter === 'all' ? 'bg-white text-rose-600 shadow-xs' : 'text-slate-500'
+                }`}
+              >
+                Tất cả
+              </button>
+              <button
+                onClick={() => setQuoteTypeFilter('poetry')}
+                className={`flex-1 py-1 rounded-lg transition-all ${
+                  quoteTypeFilter === 'poetry' ? 'bg-white text-rose-600 shadow-xs' : 'text-slate-500'
+                }`}
+              >
+                📜 Thơ ngắn
+              </button>
+              <button
+                onClick={() => setQuoteTypeFilter('quote')}
+                className={`flex-1 py-1 rounded-lg transition-all ${
+                  quoteTypeFilter === 'quote' ? 'bg-white text-rose-600 shadow-xs' : 'text-slate-500'
+                }`}
+              >
+                💬 Caption
+              </button>
+            </div>
+
+            {/* Danh sách chọn nhanh (Quick Pick Cards) */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-slate-500">Gợi ý chọn nhanh (Bấm để dùng)</span>
+                <button
+                  onClick={() => setIsQuoteModalOpen(true)}
+                  className="text-[11px] font-bold text-rose-500 hover:underline"
+                >
+                  Xem thêm...
+                </button>
+              </div>
+
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-0.5 scrollbar-thin">
+                {quickQuotes.map((q) => {
+                  const isCurrent = quoteText.trim() === q.text.trim();
+                  return (
+                    <div
+                      key={q.id}
+                      onClick={() => {
+                        setQuoteText(q.text);
+                        setAuthorText(q.author);
+                        if (showToast) showToast('Đã chọn: ' + q.author, 'success');
+                      }}
+                      className={`p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                        isCurrent
+                          ? 'border-rose-500 bg-rose-50/70 shadow-xs font-semibold'
+                          : 'border-slate-200/80 bg-white hover:border-rose-300 hover:bg-rose-50/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${
+                          q.type === 'poetry' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {q.type === 'poetry' ? '📜 Thơ' : '💬 Caption'}
+                        </span>
+                        {isCurrent && (
+                          <span className="text-rose-600 font-bold text-[10px] flex items-center gap-0.5">
+                            <Check className="w-3 h-3" /> Đang dùng
+                          </span>
+                        )}
+                      </div>
+                      <p className="line-clamp-2 text-slate-700 leading-snug whitespace-pre-line text-[11px]">
+                        {q.text}
+                      </p>
+                      <div className="text-[10px] text-slate-400 mt-1 font-medium">{q.author}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Textarea chỉnh sửa nội dung trực tiếp */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                Nội dung (Nhấp trực tiếp trên ảnh để gõ)
+                Nội dung tùy chỉnh (Hoặc nhấp trên ảnh để gõ)
               </label>
               <textarea
                 value={quoteText}
@@ -629,6 +752,20 @@ export default function Sidebar({
         )}
 
       </div>
+
+      {/* Modal Thư Viện Kho Câu Nói & Thơ Ngắn */}
+      <QuoteLibraryModal
+        isOpen={isQuoteModalOpen}
+        onClose={() => setIsQuoteModalOpen(false)}
+        onSelectQuote={(q) => {
+          setQuoteText(q.text);
+          setAuthorText(q.author);
+          setQuoteCategory(q.category);
+          setIsQuoteModalOpen(false);
+        }}
+        currentText={quoteText}
+        showToast={showToast}
+      />
     </aside>
   );
 }

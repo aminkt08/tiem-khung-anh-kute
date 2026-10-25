@@ -103,7 +103,7 @@ export default function CanvasWorkspace({
                       contentEditable
                       suppressContentEditableWarning
                       onBlur={(e) => setQuoteText(e.target.innerText)}
-                      className={`${fontFamily} font-bold leading-snug cursor-text focus:outline-none`}
+                      className={`${fontFamily} font-bold leading-snug cursor-text focus:outline-none whitespace-pre-line`}
                       style={{ fontSize: `${fontSize * 0.9}px`, color: textColor }}
                     >
                       {quoteText}
@@ -165,7 +165,7 @@ export default function CanvasWorkspace({
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => setQuoteText(e.target.innerText)}
-                    className={`${fontFamily} font-bold cursor-text focus:outline-none`}
+                    className={`${fontFamily} font-bold cursor-text focus:outline-none whitespace-pre-line`}
                     style={{ fontSize: `${fontSize * 0.9}px`, color: textColor }}
                   >
                     {quoteText}
@@ -207,7 +207,7 @@ export default function CanvasWorkspace({
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => setQuoteText(e.target.innerText)}
-                        className={`${fontFamily} font-bold leading-snug cursor-text focus:outline-none`}
+                        className={`${fontFamily} font-bold leading-snug cursor-text focus:outline-none whitespace-pre-line`}
                         style={{ fontSize: `${fontSize * 0.85}px`, color: textColor }}
                       >
                         {quoteText}
@@ -256,7 +256,7 @@ export default function CanvasWorkspace({
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => setQuoteText(e.target.innerText)}
-                    className={`${fontFamily} font-bold leading-relaxed cursor-text focus:outline-none`}
+                    className={`${fontFamily} font-bold leading-relaxed cursor-text focus:outline-none whitespace-pre-line`}
                     style={{ fontSize: `${fontSize}px`, color: textColor }}
                   >
                     {quoteText}
@@ -287,7 +287,7 @@ export default function CanvasWorkspace({
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => setQuoteText(e.target.innerText)}
-                    className={`${fontFamily} font-bold leading-tight cursor-text focus:outline-none`}
+                    className={`${fontFamily} font-bold leading-tight cursor-text focus:outline-none whitespace-pre-line`}
                     style={{ fontSize: `${fontSize * 0.88}px`, color: textColor }}
                   >
                     {quoteText}
@@ -314,7 +314,7 @@ export default function CanvasWorkspace({
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => setQuoteText(e.target.innerText)}
-                    className={`${fontFamily} font-bold cursor-text focus:outline-none`}
+                    className={`${fontFamily} font-bold cursor-text focus:outline-none whitespace-pre-line`}
                     style={{ fontSize: `${fontSize * 0.9}px`, color: textColor }}
                   >
                     {quoteText}
@@ -348,7 +348,7 @@ export default function CanvasWorkspace({
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => setQuoteText(e.target.innerText)}
-                    className={`${fontFamily} font-bold cursor-text focus:outline-none`}
+                    className={`${fontFamily} font-bold cursor-text focus:outline-none whitespace-pre-line`}
                     style={{ fontSize: `${fontSize * 0.9}px`, color: textColor }}
                   >
                     {quoteText}
@@ -383,7 +383,7 @@ export default function CanvasWorkspace({
                       contentEditable
                       suppressContentEditableWarning
                       onBlur={(e) => setQuoteText(e.target.innerText)}
-                      className={`${fontFamily} font-bold leading-snug cursor-text focus:outline-none ${textAlignClass}`}
+                      className={`${fontFamily} font-bold leading-snug cursor-text focus:outline-none ${textAlignClass} whitespace-pre-line`}
                       style={{ fontSize: `${fontSize * 0.88}px`, color: textColor }}
                     >
                       {quoteText}
@@ -420,7 +420,7 @@ export default function CanvasWorkspace({
                     contentEditable
                     suppressContentEditableWarning
                     onBlur={(e) => setQuoteText(e.target.innerText)}
-                    className={`${fontFamily} font-bold cursor-text focus:outline-none`}
+                    className={`${fontFamily} font-bold cursor-text focus:outline-none whitespace-pre-line`}
                     style={{ fontSize: `${fontSize * 0.9}px`, color: textColor }}
                   >
                     {quoteText}
@@ -451,7 +451,7 @@ export default function CanvasWorkspace({
                       contentEditable
                       suppressContentEditableWarning
                       onBlur={(e) => setQuoteText(e.target.innerText)}
-                      className={`${fontFamily} font-bold cursor-text focus:outline-none`}
+                      className={`${fontFamily} font-bold cursor-text focus:outline-none whitespace-pre-line`}
                       style={{ fontSize: `${fontSize * 0.9}px`, color: '#FFF7EB' }}
                     >
                       {quoteText}
