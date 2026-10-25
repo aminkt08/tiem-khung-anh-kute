@@ -1,108 +1,110 @@
-// Hệ thống Khung ảnh nghệ thuật & Sticker Kute
+// Hệ thống Khung ảnh Pop-up 3D & Sticker Tối Giản Dễ Thương (Aesthetic & Minimal)
 
+// Bảng icon phong cách đơn giản, tinh tế, nhẹ nhàng (Bỏ các icon hoạt hình trẻ con)
 const STICKER_LIBRARY = [
-    { id: 'cat', emoji: '🐱', name: 'Mèo con' },
-    { id: 'bunny', emoji: '🐰', name: 'Thỏ xinh' },
-    { id: 'bear', emoji: '🐻', name: 'Gấu con' },
-    { id: 'sparkles', emoji: '✨', name: 'Lấp lánh' },
-    { id: 'heart_pink', emoji: '💖', name: 'Trái tim' },
-    { id: 'sunflower', emoji: '🌻', name: 'Hướng dương' },
-    { id: 'cherry_blossom', emoji: '🌸', name: 'Hoa anh đào' },
-    { id: 'rainbow', emoji: '🌈', name: 'Cầu vồng' },
-    { id: 'boba', emoji: '🧋', name: 'Trà sữa' },
-    { id: 'strawberry', emoji: '🍓', name: 'Dâu tây' },
-    { id: 'cloud', emoji: '☁️', name: 'Mây hồng' },
-    { id: 'ribbon', emoji: '🎀', name: 'Nơ hồng' },
-    { id: 'sun', emoji: '☀️', name: 'Nắng sớm' },
-    { id: 'coffee', emoji: '☕', name: 'Tách trà/cà phê' },
-    { id: 'clover', emoji: '🍀', name: 'Cỏ 4 lá' },
-    { id: 'cake', emoji: '🍰', name: 'Bánh ngọt' },
-    { id: 'butterfly', emoji: '🦋', name: 'Bướm xuân' },
-    { id: 'sparkle_stars', emoji: '⭐', name: 'Ngôi sao' }
+    { id: 'sparkle_pure', emoji: '✨', name: 'Lấp lánh tinh khôi' },
+    { id: 'heart_white', emoji: '🤍', name: 'Trái tim trắng' },
+    { id: 'leaf_branch', emoji: '🌿', name: 'Cành lá khuynh diệp' },
+    { id: 'tulip_soft', emoji: '🌷', name: 'Hoa tulip dịu dàng' },
+    { id: 'coffee_cup', emoji: '☕', name: 'Tách cà phê ấm' },
+    { id: 'dove_peace', emoji: '🕊️', name: 'Bồ câu an yên' },
+    { id: 'crescent_moon', emoji: '🌙', name: 'Trăng khuyết' },
+    { id: 'candle_warm', emoji: '🕯️', name: 'Nến thơm' },
+    { id: 'open_book', emoji: '📖', name: 'Trang sách nhỏ' },
+    { id: 'letter_envelope', emoji: '✉️', name: 'Phong thư gửi trao' },
+    { id: 'camera_retro', emoji: '📷', name: 'Máy ảnh mộc mạc' },
+    { id: 'music_note', emoji: '🎵', name: 'Giai điệu nhẹ nhàng' },
+    { id: 'tag_label', emoji: '🏷️', name: 'Nhãn tag vintage' },
+    { id: 'soft_cloud', emoji: '☁️', name: 'Mây trôi an nhiên' },
+    { id: 'sun_warm', emoji: '☀️', name: 'Ánh nắng ban mai' },
+    { id: 'four_leaf', emoji: '🍀', name: 'Cỏ may mắn' },
+    { id: 'star_aesthetic', emoji: '⭐', name: 'Ngôi sao nhỏ' },
+    { id: 'butterfly_soft', emoji: '🦋', name: 'Cánh bướm dịu êm' }
 ];
 
-// Tỉ lệ viền padding tính theo tỉ lệ phần trăm của chiều rộng ảnh
+// Khung ảnh phong cách Pop-up 3D & Layer đa tầng
 const FRAME_PRESETS = [
     {
-        id: 'polaroid_classic',
-        name: '📸 Polaroid Cổ Điển',
-        desc: 'Khung ảnh máy ảnh lấy liền, đáy rộng viết lời chúc ngọt ngào',
-        padding: { top: 0.05, left: 0.05, right: 0.05, bottom: 0.24 },
+        id: 'popup_glass',
+        name: '🪟 Kính Mờ Pop-up 3D',
+        desc: 'Thẻ chữ kính mờ (Glassmorphism) nổi bồng bềnh đè lên góc ảnh, đổ bóng sâu 3D',
+        padding: { top: 0.04, left: 0.04, right: 0.04, bottom: 0.04 },
+        bgColor: '#F8F6F2',
+        overlayType: 'glass_card',
+        hasPaperClip: true,
+        style: 'popup_glass'
+    },
+    {
+        id: 'postcard_stamp',
+        name: '✉️ Bưu Thiếp & Tem Dán Đè',
+        desc: 'Ảnh nổi 3D kèm tem bưu điện và băng keo mờ dán đè trực tiếp lên mép ảnh',
+        padding: { top: 0.06, left: 0.06, right: 0.06, bottom: 0.22 },
+        bgColor: '#FAF7F2',
+        borderColor: '#E8DFD3',
+        overlayType: 'postal_stamp',
+        hasWashiOverlap: true,
+        style: 'postcard'
+    },
+    {
+        id: 'sunbeam_prism',
+        name: '☀️ Vệt Nắng Chiều & Lăng Kính',
+        desc: 'Vệt nắng xiên nhẹ ấm áp và bụi sao lấp lánh phản chiếu trực tiếp trong lòng bức ảnh',
+        padding: { top: 0.05, left: 0.05, right: 0.05, bottom: 0.20 },
         bgColor: '#FFFDF9',
-        borderColor: '#EFE3D3',
-        borderRadius: 12,
-        shadow: true,
+        borderColor: '#F3E9DA',
+        overlayType: 'sunbeam',
+        style: 'sunbeam'
+    },
+    {
+        id: 'polaroid_clip',
+        name: '📎 Polaroid & Kẹp Kim Loại 3D',
+        desc: 'Khung ảnh lấy liền với kẹp tài liệu kim loại sang trọng kẹp trực tiếp vào góc ảnh',
+        padding: { top: 0.06, left: 0.06, right: 0.06, bottom: 0.24 },
+        bgColor: '#FFFFFF',
+        borderColor: '#EDE6DD',
+        hasPaperClip: true,
+        hasWashiOverlap: true,
         style: 'polaroid'
     },
     {
-        id: 'pastel_pink',
-        name: '🌸 Pastel Kẹo Ngọt',
-        desc: 'Viền hồng phấn kem bơ, bo tròn mềm mại và dịu dàng',
-        padding: { top: 0.06, left: 0.06, right: 0.06, bottom: 0.22 },
-        bgColor: '#FFF0F5',
-        borderColor: '#FFB6C1',
-        borderRadius: 28,
-        style: 'pastel'
-    },
-    {
-        id: 'washi_tape',
-        name: '📌 Scrapbook & Băng Keo',
-        desc: 'Khung dán băng keo washi họa tiết ở các góc cực kute',
-        padding: { top: 0.07, left: 0.06, right: 0.06, bottom: 0.24 },
-        bgColor: '#FDFBF7',
-        borderColor: '#E2D5BE',
-        borderRadius: 16,
-        style: 'washi'
-    },
-    {
-        id: 'vintage_film',
-        name: '🎞️ Cuộn Phim Hoài Niệm',
-        desc: 'Dải phim điện ảnh cổ điển với viền đục lỗ nghệ thuật',
-        padding: { top: 0.09, left: 0.06, right: 0.06, bottom: 0.24 },
-        bgColor: '#1A1918',
-        borderColor: '#383533',
-        textColor: '#FFF6E0',
-        borderRadius: 14,
+        id: 'film_nostalgia',
+        name: '🎞️ Phim Cổ Điển & Dấu Đè',
+        desc: 'Cuộn phim nghệ thuật với vệt sáng film leak và tem timestamp hổ phách',
+        padding: { top: 0.08, left: 0.05, right: 0.05, bottom: 0.20 },
+        bgColor: '#161514',
+        borderColor: '#302E2B',
+        textColor: '#FFF7EB',
+        overlayType: 'film_leak',
         style: 'film'
     },
     {
-        id: 'cloud_dream',
-        name: '☁️ Mây Hồng Gradient',
-        desc: 'Viền chuyển màu hoàng hôn mộng mơ, hiện đại lung linh',
-        padding: { top: 0.06, left: 0.06, right: 0.06, bottom: 0.22 },
-        gradient: ['#FFE5EC', '#F0E6FF', '#E8F0FE'],
-        borderRadius: 30,
-        style: 'gradient'
-    },
-    {
-        id: 'mint_fresh',
-        name: '🌿 Bạc Hà Xanh Mát',
-        desc: 'Viền xanh pastel tự nhiên mang lại cảm giác bình yên',
-        padding: { top: 0.06, left: 0.06, right: 0.06, bottom: 0.22 },
-        bgColor: '#F0FDF4',
-        borderColor: '#86EFAC',
-        borderRadius: 24,
-        style: 'mint'
-    },
-    {
-        id: 'minimal_chic',
-        name: '✨ Tối Giản Nghệ Thuật',
-        desc: 'Viền mỏng thanh thoát, tinh tế và chuẩn gu sang chảnh',
-        padding: { top: 0.05, left: 0.05, right: 0.05, bottom: 0.20 },
-        bgColor: '#FFFFFF',
-        borderColor: '#718096',
-        borderWidth: 2,
-        borderRadius: 8,
+        id: 'minimal_gallery',
+        name: '✨ Tranh Triển Lãm Nổi Khối',
+        desc: 'Viền tranh tinh giản cao cấp, ảnh nổi khối 3D với typography thanh lịch',
+        padding: { top: 0.07, left: 0.07, right: 0.07, bottom: 0.20 },
+        bgColor: '#FAF9F6',
+        borderColor: '#D8D3C8',
+        borderWidth: 1.5,
         style: 'minimal'
     }
 ];
 
-// Bộ lọc ảnh (Photo Filters)
+// Hiệu ứng nổi bổ sung trong lòng ảnh (Overlay Effects)
+const OVERLAY_EFFECTS = [
+    { id: 'auto', name: 'Tự động theo khung' },
+    { id: 'glass_card', name: 'Thẻ kính mờ nổi (Glass Pop-up)' },
+    { id: 'sunbeam', name: 'Vệt nắng ấm xiên qua ảnh' },
+    { id: 'postal_stamp', name: 'Tem bưu chính dán đè' },
+    { id: 'sparkles_dust', name: 'Bụi sao lấp lánh trong ảnh' },
+    { id: 'none', name: 'Không dùng hiệu ứng phủ' }
+];
+
+// Bộ lọc ảnh màu sắc nghệ thuật nhẹ nhàng
 const PHOTO_FILTERS = [
-    { id: 'none', name: 'Gốc (Tự nhiên)' },
-    { id: 'bright_sweet', name: 'Tươi Sáng Pastel' },
-    { id: 'warm_vintage', name: 'Ấm Áp Vintage' },
-    { id: 'dreamy_pink', name: 'Mộng Mơ Ánh Hồng' },
-    { id: 'film_nostalgia', name: 'Phim Hoài Niệm' },
-    { id: 'bw_classic', name: 'Trắng Đen Nghệ Thuật' }
+    { id: 'none', name: 'Màu gốc tự nhiên' },
+    { id: 'bright_sweet', name: 'Trong trẻo Hàn Quốc' },
+    { id: 'warm_vintage', name: 'Ấm áp hoài niệm' },
+    { id: 'dreamy_pink', name: 'Ánh hồng thơ mộng' },
+    { id: 'film_nostalgia', name: 'Màu phim điện ảnh' },
+    { id: 'bw_classic', name: 'Trắng đen tối giản' }
 ];
