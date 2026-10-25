@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiệm Khung Ảnh & Thơ Kute - Tạo Ảnh Động Lực, Yêu Đời & Cảm Xúc</title>
+    <!-- Google Fonts hỗ trợ tiếng Việt đầy đủ và thẩm mỹ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Dancing+Script:wght@600;700&family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,600;1,500&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Header bar -->
+    <header>
+        <div class="header-container">
+            <div class="logo-group">
+                <div class="logo-badge">🌸</div>
+                <div class="logo-text">
+                    <h1>Tiệm Khung Ảnh & Thơ Kute</h1>
+                    <p>Tự động ghép khung xinh, dán sticker dễ thương & gửi gắm thông điệp chạm cảm xúc</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
+                <button class="btn btn-outline-cute" id="uploadPhotoBtn">
+                    📁 Tải Ảnh Của Bạn
+                </button>
+                <button class="btn btn-magic" id="magicAllBtn">
+                    ✨ Phù Phép Ngẫu Nhiên
+                </button>
+                <button class="btn btn-primary" id="downloadPhotoBtn">
+                    📥 Tải Ảnh Về Máy
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="app-container">
+
+        <!-- CỘT TRÁI: KHU VỰC HIỂN THỊ ẢNH & CANVAS -->
+        <section class="preview-card">
+            <div class="preview-toolbar">
+                <div class="preview-title">
+                    <span>✨ Ảnh Đã Phù Phép Xong</span>
+                </div>
+                <div class="quick-bar">
+                    <button class="quick-btn" id="randomQuoteBtn" title="Đổi một câu nói hoặc bài thơ khác">
+                        🎲 Đổi câu thơ
+                    </button>
+                    <button class="quick-btn" id="randomFrameBtn" title="Đổi kiểu khung ảnh khác">
+                        🖼️ Đổi khung
+                    </button>
+                    <button class="quick-btn" id="randomStickersBtn" title="Đổi các sticker kute khác">
+                        🎀 Đổi sticker
+                    </button>
+                    <button class="quick-btn" id="changePhotoBtn" title="Chọn ảnh khác">
+                        🔄 Đổi ảnh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Khung vẽ Canvas -->
+            <div class="canvas-wrapper" id="uploadDropzone">
+                <canvas id="photoCanvas"></canvas>
+            </div>
+
+            <div class="canvas-hint">
+                <span>💡 <strong>Mẹo nhỏ:</strong> Bạn có thể dùng chuột kéo thả trực tiếp các biểu tượng sticker trên ảnh để đặt vào vị trí yêu thích!</span>
+            </div>
+        </section>
+
+        <!-- CỘT PHẢI: BẢNG ĐIỀU KHIỂN & TÙY BIẾN -->
+        <aside class="controls-card">
+            <!-- Tabs Menu -->
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="tab-quotes">📜 Lời Chúc & Thơ</button>
+                <button class="tab-btn" data-tab="tab-frames">🖼️ Khung Ảnh</button>
+                <button class="tab-btn" data-tab="tab-stickers">🎀 Sticker Kute</button>
+                <button class="tab-btn" data-tab="tab-effects">🎨 Bộ Lọc Màu</button>
+            </div>
+
+            <!-- TAB 1: CÂU NÓI & THƠ -->
+            <div class="tab-content active" id="tab-quotes">
+                <div class="control-group">
+                    <label class="control-label">
+                        <span>Chủ đề thông điệp</span>
+                        <span class="badge-pill">Ngẫu nhiên</span>
+                    </label>
+                    <div class="category-chips">
+                        <button class="chip active" data-cat="all">🌈 Tất Cả</button>
+                        <button class="chip" data-cat="dong_luc">☀️ Động Lực Tươi Vui</button>
+                        <button class="chip" data-cat="hai_huoc">🧋 Hài Hước Yêu Đời</button>
+                        <button class="chip" data-cat="tho_ngan">🌸 Thơ Ngắn Hay</button>
+                        <button class="chip" data-cat="cam_xuc">🤍 Chạm Cảm Xúc</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="quoteTextInput">
+                        <span>Nội dung câu nói / bài thơ</span>
+                    </label>
+                    <textarea id="quoteTextInput" class="quote-textarea" placeholder="Nhập câu nói hoặc bài thơ ngọt ngào của bạn..."></textarea>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="authorTextInput">
+                        <span>Chữ ký / Tác giả / Lời gửi gắm</span>
+                    </label>
+                    <input type="text" id="authorTextInput" class="input-text" placeholder="Ví dụ: Nụ cười tỏa nắng ✨, Yêu chính mình 🌸">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="fontFamilySelect">
+                        <span>Kiểu chữ nghệ thuật</span>
+                    </label>
+                    <select id="fontFamilySelect" class="select-cute">
+                        <option value="'Quicksand', 'Nunito', sans-serif">Dễ Thương Hiện Đại (Quicksand)</option>
+                        <option value="'Dancing Script', cursive">Chữ Viết Tay Nghệ Thuật (Dancing Script)</option>
+                        <option value="'Baloo 2', cursive">Chữ Bo Tròn Ngộ Nghĩnh (Baloo 2)</option>
+                        <option value="'Playfair Display', serif">Cổ Điển Sang Trọng (Playfair Display)</option>
+                        <option value="'Nunito', sans-serif">Thanh Lịch Tự Nhiên (Nunito)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Cỡ chữ</span>
+                        <span id="fontSizeValue" class="badge-pill">28px</span>
+                    </div>
+                    <div class="slider-group">
+                        <input type="range" id="fontSizeSlider" class="slider-cute" min="18" max="44" value="28">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="textColorPicker">
+                        <span>Màu chữ</span>
+                    </label>
+                    <input type="color" id="textColorPicker" value="#2D3748" style="width: 100%; height: 38px; border-radius: 8px; border: 1.5px solid #E2E8F0; cursor: pointer;">
+                </div>
+            </div>
+
+            <!-- TAB 2: KHUNG ẢNH -->
+            <div class="tab-content" id="tab-frames">
+                <div class="control-group">
+                    <label class="control-label">
+                        <span>Chọn kiểu khung nghệ thuật</span>
+                    </label>
+                    <div class="frame-grid" id="framesGrid">
+                        <!-- Sẽ được render tự động từ frames.js -->
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="aspectRatioSelect">
+                        <span>Tỉ lệ khung hình xuất ảnh</span>
+                    </label>
+                    <select id="aspectRatioSelect" class="select-cute">
+                        <option value="original">Tự nhiên theo ảnh gốc</option>
+                        <option value="1:1">Hình vuông 1:1 (Instagram / Avatar)</option>
+                        <option value="4:5">Dọc 4:5 (Facebook / Instagram Post)</option>
+                        <option value="9:16">Dọc 9:16 (Story / TikTok / Reels)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- TAB 3: STICKERS KUTE -->
+            <div class="tab-content" id="tab-stickers">
+                <div class="control-group">
+                    <label class="control-label">
+                        <span>Bấm vào sticker để gắn thêm vào ảnh</span>
+                    </label>
+                    <div class="stickers-palette" id="stickerPalette">
+                        <!-- Sẽ được render từ frames.js -->
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 14px;">
+                    <button class="btn btn-secondary" style="flex: 1;" id="clearStickersBtn">
+                        🗑️ Xóa hết sticker
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB 4: BỘ LỌC MÀU SẮC -->
+            <div class="tab-content" id="tab-effects">
+                <div class="control-group">
+                    <label class="control-label">
+                        <span>Bộ lọc màu ảnh nghệ thuật</span>
+                    </label>
+                    <div class="filters-grid" id="filtersGrid">
+                        <!-- Sẽ được render tự động -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Footer Action -->
+            <div class="panel-footer">
+                <button class="btn btn-primary" id="downloadPhotoBtn2" onclick="downloadProcessedPhoto()" style="width: 100%; padding: 14px; font-size: 1.05rem;">
+                    📥 TẢI ẢNH VỀ MÁY (PNG SIÊU NÉT)
+                </button>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Toast thông báo nhỏ -->
+    <div id="toast" class="toast">✨ Thông báo</div>
+
+    <!-- Scripts -->
+    <script src="quotes.js"></script>
+    <script src="frames.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
