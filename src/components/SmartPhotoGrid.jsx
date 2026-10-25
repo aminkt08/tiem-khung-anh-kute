@@ -3,12 +3,14 @@ import React from 'react';
 /**
  * Thuật toán sắp xếp đa ảnh tự động (Smart Non-Overlapping Grid Algorithm)
  * Đảm bảo 1 đến 6 ảnh luôn được phân chia không gian cân đối, KHÔNG BỊ ĐÈ LÊN NHAU.
+ * Hỗ trợ áp dụng bộ lọc màu ảnh nghệ thuật (Photo Filters).
  */
 export default function SmartPhotoGrid({ 
   photos = [], 
   roundedClass = 'rounded-xl',
   gapClass = 'gap-2.5',
-  borderClass = 'border border-white/60'
+  borderClass = 'border border-white/60',
+  filterStyle = ''
 }) {
   const count = Math.min(Math.max(photos.length, 1), 6);
   const items = photos.slice(0, 6);
@@ -23,7 +25,8 @@ export default function SmartPhotoGrid({
         <img 
           src={photo.url} 
           alt={`Photo ${index + 1}`} 
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+          style={{ filter: filterStyle || 'none' }}
+          className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.03]" 
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-medium">

@@ -1,14 +1,16 @@
-import { toPng, toCanvas } from 'html-to-image';
+import { toPng, toJpeg, toCanvas } from 'html-to-image';
 import confetti from 'canvas-confetti';
 
-export async function downloadCanvasAsImage(elementId, customFilename) {
+/**
+ * Xuất ảnh HD chất lượng cao (Scale 2.5x) tải về máy
+ */
+export async function downloadCanvasAsImage(elementId, customFilename, format = 'png') {
   const node = document.getElementById(elementId);
   if (!node) {
-    alert('Không tìm thấy khung ảnh để xuất!');
-    return false;
+    throw new Error('Không tìm thấy khung ảnh để xuất');
   }
 
-  // 1. Tạm ẩn các nút điều khiển / icon xóa có class 'no-export'
+  // Tạm ẩn các thành phần điều khiển
   const noExportEls = node.querySelectorAll('.no-export');
   noExportEls.forEach(el => {
     el.style.opacity = '0';
@@ -16,16 +18,11 @@ export async function downloadCanvasAsImage(elementId, customFilename) {
   });
 
   try {
-    // Chờ 1 chút để DOM và ảnh ổn định
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r => setTimeout(r, 120));
 
-    // Cấu hình tối ưu tuyệt đối:
-    // - cacheBust: false (bắt buộc để không làm hỏng URL blob: của ảnh tải lên)
-    // - skipFonts: true (bắt buộc để tránh lỗi SecurityError / CORS khi đọc stylesheet Google Fonts)
-    // - pixelRatio: 2 (chuẩn sắc nét cao mà không bị tràn bộ nhớ mobile/desktop)
     const exportOptions = {
       quality: 0.98,
-      pixelRatio: 2,
+      pixelRatio: 2.5,
       cacheBust: false,
       skipFonts: true,
       filter: (domNode) => {
@@ -36,21 +33,27 @@ export async function downloadCanvasAsImage(elementId, customFilename) {
 
     let dataUrl = null;
 
-    try {
-      // Cách 1: Xuất PNG chuẩn
-      dataUrl = await toPng(node, exportOptions);
-    } catch (pngError) {
-      console.warn('toPng gặp sự cố, chuyển sang toCanvas fallback...', pngError);
-      // Cách 2: Fallback qua toCanvas rồi lấy dataUrl
-      const canvas = await toCanvas(node, exportOptions);
-      dataUrl = canvas.toDataURL('image/png');
+    if (format === 'jpeg' || format === 'jpg') {
+      try {
+        dataUrl = await toJpeg(node, exportOptions);
+      } catch {
+        const canvas = await toCanvas(node, exportOptions);
+        dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      }
+    } else {
+      try {
+        dataUrl = await toPng(node, exportOptions);
+      } catch {
+        const canvas = await toCanvas(node, exportOptions);
+        dataUrl = canvas.toDataURL('image/png');
+      }
     }
 
     if (!dataUrl || dataUrl === 'data:,') {
       throw new Error('Dữ liệu ảnh rỗng');
     }
 
-    // Khôi phục hiển thị các nút điều khiển
+    // Khôi phục hiển thị
     noExportEls.forEach(el => {
       el.style.opacity = '';
       el.style.pointerEvents = '';
@@ -59,17 +62,18 @@ export async function downloadCanvasAsImage(elementId, customFilename) {
     // Bắn pháo hoa ăn mừng
     try {
       confetti({
-        particleCount: 70,
+        particleCount: 75,
         spread: 65,
         origin: { y: 0.7 }
       });
     } catch (_) {}
 
-    // Tải ảnh về máy
+    // Tải file về máy
     const pad = (n) => String(n).padStart(2, '0');
     const now = new Date();
-    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    const filename = customFilename || `PhotoMagic_Studio_${timestamp}.png`;
+    const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+    const ext = format === 'jpeg' || format === 'jpg' ? 'jpg' : 'png';
+    const filename = customFilename || `PhotoStudio_3D_${timestamp}.${ext}`;
 
     const link = document.createElement('a');
     link.download = filename;
@@ -78,17 +82,79 @@ export async function downloadCanvasAsImage(elementId, customFilename) {
     link.click();
     document.body.removeChild(link);
 
-    return true;
+    return { success: true, filename };
   } catch (error) {
-    console.error('Lỗi chi tiết khi xuất ảnh:', error);
+    noExportEls.forEach(el => {
+      el.style.opacity = '';
+      el.style.pointerEvents = '';
+    });
+    console.error('Lỗi khi xuất ảnh:', error);
+    throw error;
+  }
+}
 
-    // Khôi phục hiển thị
+/**
+ * Sao chép ảnh trực tiếp vào Clipboard (Clipboard API)
+ * Người dùng có thể dán ngay (Ctrl+V) vào Zalo, Messenger, Facebook, Figma mà không cần lưu file
+ */
+export async function copyCanvasToClipboard(elementId) {
+  const node = document.getElementById(elementId);
+  if (!node) {
+    throw new Error('Không tìm thấy khung ảnh');
+  }
+
+  const noExportEls = node.querySelectorAll('.no-export');
+  noExportEls.forEach(el => {
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+  });
+
+  try {
+    await new Promise(r => setTimeout(r, 120));
+
+    const exportOptions = {
+      quality: 0.98,
+      pixelRatio: 2,
+      cacheBust: false,
+      skipFonts: true
+    };
+
+    let blob = null;
+    try {
+      const canvas = await toCanvas(node, exportOptions);
+      blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    } catch {
+      const dataUrl = await toPng(node, exportOptions);
+      const res = await fetch(dataUrl);
+      blob = await res.blob();
+    }
+
     noExportEls.forEach(el => {
       el.style.opacity = '';
       el.style.pointerEvents = '';
     });
 
-    alert('Có lỗi khi tạo ảnh chất lượng cao (' + (error.message || 'Lỗi bộ nhớ/CORS') + '). Hãy thử thu nhỏ khung hình hoặc đổi sang ảnh khác nhé!');
-    return false;
+    if (!blob) throw new Error('Không thể tạo dữ liệu ảnh để sao chép');
+
+    await navigator.clipboard.write([
+      new ClipboardItem({ 'image/png': blob })
+    ]);
+
+    try {
+      confetti({
+        particleCount: 40,
+        spread: 50,
+        origin: { y: 0.7 }
+      });
+    } catch (_) {}
+
+    return { success: true };
+  } catch (error) {
+    noExportEls.forEach(el => {
+      el.style.opacity = '';
+      el.style.pointerEvents = '';
+    });
+    console.error('Lỗi khi sao chép vào clipboard:', error);
+    throw error;
   }
 }

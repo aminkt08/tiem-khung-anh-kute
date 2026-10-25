@@ -9,7 +9,16 @@ import {
   Trash2, 
   Sparkles, 
   Shuffle, 
-  CheckCircle2
+  RotateCw, 
+  CheckCircle2, 
+  Sliders, 
+  Sun, 
+  Contrast, 
+  AlignLeft, 
+  AlignCenter, 
+  AlignRight, 
+  Layers, 
+  ArrowLeftRight
 } from 'lucide-react';
 import { TEMPLATES_DATA, FONT_OPTIONS, BACKGROUND_PALETTES } from '../data/templatesData';
 import { QUOTE_CATEGORIES, getRandomQuote } from '../data/quotesData';
@@ -19,6 +28,8 @@ export default function Sidebar({
   photos,
   onUploadPhotos,
   onRemovePhoto,
+  onRotatePhoto,
+  onSwapPhotos,
   activeTemplate,
   setActiveTemplate,
   quoteText,
@@ -33,6 +44,10 @@ export default function Sidebar({
   setFontSize,
   textColor,
   setTextColor,
+  textAlign,
+  setTextAlign,
+  textBgBadge,
+  setTextBgBadge,
   bgColor,
   setBgColor,
   stickers,
@@ -41,12 +56,18 @@ export default function Sidebar({
   autoDecor,
   setAutoDecor,
   washiColor,
-  setWashiColor
+  setWashiColor,
+  activeFilter,
+  setActiveFilter,
+  sunbeamEffect,
+  setSunbeamEffect,
+  microRotate,
+  setMicroRotate
 }) {
   const [activeTab, setActiveTab] = useState('templates');
   const [frameFilter, setFrameFilter] = useState('all');
 
-  // Lọc danh sách khung: Có thêm bộ lọc thông minh theo số lượng ảnh hiện tại
+  // Lọc danh sách khung
   const filteredTemplates = TEMPLATES_DATA.filter(t => {
     if (frameFilter === 'all') return true;
     if (frameFilter === 'recommended') {
@@ -55,14 +76,24 @@ export default function Sidebar({
     return t.category === frameFilter;
   });
 
+  // Bộ lọc màu ảnh nghệ thuật
+  const PHOTO_FILTERS = [
+    { id: 'none', name: 'Gốc', filter: 'none' },
+    { id: 'bright', name: 'Trong trẻo', filter: 'brightness(1.08) contrast(1.04) saturate(1.18)' },
+    { id: 'warm', name: 'Ấm áp', filter: 'sepia(0.24) contrast(1.06) brightness(1.02) saturate(1.1)' },
+    { id: 'dreamy', name: 'Mộng mơ', filter: 'brightness(1.05) contrast(1.02) saturate(1.18) hue-rotate(-8deg)' },
+    { id: 'film', name: 'Phim Cổ', filter: 'sepia(0.32) contrast(1.14) brightness(0.96) saturate(0.92)' },
+    { id: 'bw', name: 'Trắng đen', filter: 'grayscale(1) contrast(1.18) brightness(1.02)' }
+  ];
+
   return (
-    <aside className="w-full lg:w-[380px] bg-white border-r border-slate-200/80 flex flex-col h-auto lg:h-[calc(100vh-65px)] shadow-sm">
+    <aside className="w-full lg:w-[390px] bg-white border-r border-slate-200/80 flex flex-col h-auto lg:h-[calc(100vh-61px)] shadow-sm">
       
-      {/* Tab Navigation Icons */}
+      {/* Tab Navigation */}
       <div className="flex border-b border-slate-100 bg-slate-50/70 p-1.5 gap-1 overflow-x-auto text-xs font-bold text-slate-600">
         <button
           onClick={() => setActiveTab('images')}
-          className={`flex-1 min-w-[64px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
+          className={`flex-1 min-w-[62px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
             activeTab === 'images' ? 'bg-white text-rose-500 shadow-sm' : 'hover:bg-slate-200/50'
           }`}
         >
@@ -72,27 +103,27 @@ export default function Sidebar({
 
         <button
           onClick={() => setActiveTab('templates')}
-          className={`flex-1 min-w-[64px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
+          className={`flex-1 min-w-[62px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
             activeTab === 'templates' ? 'bg-white text-rose-500 shadow-sm' : 'hover:bg-slate-200/50'
           }`}
         >
           <LayoutTemplate className="w-4 h-4" />
-          <span>Khung ({TEMPLATES_DATA.length})</span>
+          <span>Khung</span>
         </button>
 
         <button
           onClick={() => setActiveTab('quotes')}
-          className={`flex-1 min-w-[64px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
+          className={`flex-1 min-w-[62px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
             activeTab === 'quotes' ? 'bg-white text-rose-500 shadow-sm' : 'hover:bg-slate-200/50'
           }`}
         >
           <Quote className="w-4 h-4" />
-          <span>Lời Chúc</span>
+          <span>Chữ & Thơ</span>
         </button>
 
         <button
           onClick={() => setActiveTab('stickers')}
-          className={`flex-1 min-w-[64px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
+          className={`flex-1 min-w-[62px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
             activeTab === 'stickers' ? 'bg-white text-rose-500 shadow-sm' : 'hover:bg-slate-200/50'
           }`}
         >
@@ -102,19 +133,21 @@ export default function Sidebar({
 
         <button
           onClick={() => setActiveTab('background')}
-          className={`flex-1 min-w-[64px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
+          className={`flex-1 min-w-[62px] py-2.5 px-2 rounded-xl flex flex-col items-center gap-1 transition-all ${
             activeTab === 'background' ? 'bg-white text-rose-500 shadow-sm' : 'hover:bg-slate-200/50'
           }`}
         >
           <Palette className="w-4 h-4" />
-          <span>Nền</span>
+          <span>Nền & Hiệu Ứng</span>
         </button>
       </div>
 
       {/* Tab Contents */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
         
-        {/* --- TAB 1: ẢNH (IMAGES) --- */}
+        {/* ============================================================ */}
+        {/* TAB 1: ẢNH & BỘ LỌC NGHỆ THUẬT (IMAGES & PHOTO FILTERS)      */}
+        {/* ============================================================ */}
         {activeTab === 'images' && (
           <div className="space-y-4">
             <div>
@@ -122,12 +155,12 @@ export default function Sidebar({
                 Tải ảnh lên (Hỗ trợ 1 đến 6 ảnh)
               </label>
 
-              <label className="border-2 border-dashed border-rose-200 hover:border-rose-400 bg-rose-50/40 hover:bg-rose-50/70 transition-all rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer group text-center">
-                <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-rose-500 mb-2 group-hover:scale-110 transition-transform">
+              <label className="border-2 border-dashed border-rose-200 hover:border-rose-400 bg-rose-50/40 hover:bg-rose-50/70 transition-all rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer group text-center">
+                <div className="w-11 h-11 rounded-full bg-white shadow-sm flex items-center justify-center text-rose-500 mb-2 group-hover:scale-110 transition-transform">
                   <Upload className="w-5 h-5" />
                 </div>
                 <span className="text-sm font-bold text-slate-700">Kéo thả hoặc bấm để chọn ảnh</span>
-                <span className="text-xs text-slate-400 mt-1">Hỗ trợ JPG, PNG, WEBP (Tối đa 6 ảnh)</span>
+                <span className="text-xs text-slate-400 mt-1">Tối đa 6 ảnh cùng lúc</span>
                 <input
                   type="file"
                   multiple
@@ -138,48 +171,91 @@ export default function Sidebar({
               </label>
             </div>
 
-            {/* Thông báo thuật toán tự động */}
-            <div className="p-3 bg-emerald-50 border border-emerald-200/70 rounded-2xl flex items-start gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-              <div className="text-xs text-emerald-800">
-                <span className="font-bold">Thuật toán phân bố đa ảnh:</span> Khi tải nhiều ảnh, hệ thống tự động tính toán không gian để ảnh được xếp song song hoặc phân ô cân đối, <span className="font-semibold underline">hoàn toàn không bị đè che mất ảnh</span>!
+            {/* Bộ lọc màu ảnh nghệ thuật (Photo Filters) */}
+            <div>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                Bộ lọc màu ảnh (6 Presets)
+              </label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {PHOTO_FILTERS.map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setActiveFilter(f.filter)}
+                    className={`p-2 rounded-xl text-xs font-bold transition-all ${
+                      activeFilter === f.filter
+                        ? 'bg-rose-500 text-white shadow-sm'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {f.name}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Danh sách ảnh đã tải */}
+            {/* Danh sách ảnh đã tải kèm tính năng Xoay & Hoán đổi vị trí */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-500">Ảnh đã chọn ({photos.length}/6)</span>
-                {photos.length > 0 && (
-                  <span className="text-xs text-rose-500 font-semibold">Tự động chọn khung tối ưu</span>
+                <span className="text-xs font-bold text-slate-500">Ảnh trong khung ({photos.length}/6)</span>
+                {photos.length > 1 && (
+                  <span className="text-[11px] text-slate-400 font-medium">Bấm mũi tên để đổi vị trí</span>
                 )}
               </div>
 
               <div className="grid grid-cols-3 gap-2.5">
                 {photos.map((photo, index) => (
-                  <div key={photo.id || index} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                    <img src={photo.url} alt={`Upload ${index + 1}`} className="w-full h-full object-cover" />
-                    <button
-                      onClick={() => onRemovePhoto(index)}
-                      className="absolute top-1 right-1 bg-black/60 hover:bg-rose-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all"
-                      title="Xóa ảnh này"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="absolute bottom-1 left-1 bg-black/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                  <div key={photo.id || index} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+                    <img 
+                      src={photo.url} 
+                      alt={`Upload ${index + 1}`} 
+                      style={{ filter: activeFilter || 'none' }}
+                      className="w-full h-full object-cover" 
+                    />
+                    
+                    {/* Action buttons over photo thumbnail */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-1">
+                      {photos.length > 1 && index > 0 && (
+                        <button
+                          onClick={() => onSwapPhotos(index, index - 1)}
+                          className="bg-white/90 hover:bg-white text-slate-800 p-1 rounded-md"
+                          title="Chuyển sang trước"
+                        >
+                          <ArrowLeftRight className="w-3 h-3" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => onRemovePhoto(index)}
+                        className="bg-rose-500 hover:bg-rose-600 text-white p-1 rounded-md"
+                        title="Xóa ảnh này"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">
                       #{index + 1}
                     </span>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Thông báo thuật toán chia lưới */}
+            <div className="p-3 bg-emerald-50 border border-emerald-200/70 rounded-2xl flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+              <div className="text-xs text-emerald-800 leading-relaxed">
+                <span className="font-bold">Thuật toán phân bố:</span> Các bức ảnh luôn được phân chia diện tích đối xứng hoặc song song, <span className="font-semibold underline">tuyệt đối không bị đè che mất mặt hay chủ thể</span>!
+              </div>
+            </div>
           </div>
         )}
 
-        {/* --- TAB 2: KHUNG ẢNH (TEMPLATES) --- */}
+        {/* ============================================================ */}
+        {/* TAB 2: KHUNG ẢNH & HIỆU ỨNG POP-UP (TEMPLATES)               */}
+        {/* ============================================================ */}
         {activeTab === 'templates' && (
           <div className="space-y-4">
-            {/* Lọc danh mục khung kèm nút Lọc Khuyên Dùng Theo Số Lượng Ảnh */}
+            {/* Lọc danh mục khung */}
             <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
               <button
                 onClick={() => setFrameFilter('all')}
@@ -241,7 +317,7 @@ export default function Sidebar({
                   >
                     {isRecommended && (
                       <span className="absolute top-2.5 right-2.5 bg-amber-100 text-amber-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border border-amber-300/60">
-                        ⭐ Tối ưu cho {photos.length} ảnh
+                        ⭐ Tối ưu {photos.length} ảnh
                       </span>
                     )}
 
@@ -252,10 +328,28 @@ export default function Sidebar({
                 );
               })}
             </div>
+
+            {/* Tùy chỉnh hiệu ứng xoay nghiêng tự nhiên */}
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div>
+                  <div className="text-xs font-bold text-slate-800">Xoay nghiêng tự nhiên (Micro-rotation)</div>
+                  <div className="text-[11px] text-slate-500">Tạo cảm giác ảnh thật dán trên bàn làm việc</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={microRotate}
+                  onChange={(e) => setMicroRotate(e.target.checked)}
+                  className="w-4 h-4 accent-rose-500 cursor-pointer"
+                />
+              </div>
+            </div>
           </div>
         )}
 
-        {/* --- TAB 3: CÂU NÓI & THƠ (QUOTES) --- */}
+        {/* ============================================================ */}
+        {/* TAB 3: CÂU NÓI & TYPOGRAPHY CHUYÊN NGHIỆP                    */}
+        {/* ============================================================ */}
         {activeTab === 'quotes' && (
           <div className="space-y-4">
             <div>
@@ -298,7 +392,7 @@ export default function Sidebar({
 
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                Nội dung (Có thể sửa trực tiếp trên ảnh)
+                Nội dung (Nhấp trực tiếp trên ảnh để gõ)
               </label>
               <textarea
                 value={quoteText}
@@ -322,6 +416,7 @@ export default function Sidebar({
               />
             </div>
 
+            {/* Chọn Kiểu Chữ Nghệ Thuật */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 Kiểu chữ nghệ thuật
@@ -337,20 +432,36 @@ export default function Sidebar({
               </select>
             </div>
 
+            {/* Căn lề & Bật Thẻ Kính Mờ Đọc Rõ Chữ */}
             <div className="grid grid-cols-2 gap-3 items-center">
               <div>
-                <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
-                  <span>Cỡ chữ</span>
-                  <span>{fontSize}px</span>
+                <label className="text-xs font-bold text-slate-500 block mb-1">Căn lề chữ</label>
+                <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+                  <button
+                    onClick={() => setTextAlign('left')}
+                    className={`flex-1 py-1.5 rounded-lg flex items-center justify-center transition-all ${
+                      textAlign === 'left' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500'
+                    }`}
+                  >
+                    <AlignLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setTextAlign('center')}
+                    className={`flex-1 py-1.5 rounded-lg flex items-center justify-center transition-all ${
+                      textAlign === 'center' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500'
+                    }`}
+                  >
+                    <AlignCenter className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setTextAlign('right')}
+                    className={`flex-1 py-1.5 rounded-lg flex items-center justify-center transition-all ${
+                      textAlign === 'right' ? 'bg-white text-rose-600 shadow-sm' : 'text-slate-500'
+                    }`}
+                  >
+                    <AlignRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <input
-                  type="range"
-                  min="16"
-                  max="44"
-                  value={fontSize}
-                  onChange={(e) => setFontSize(parseInt(e.target.value))}
-                  className="w-full accent-rose-500"
-                />
               </div>
 
               <div>
@@ -366,10 +477,28 @@ export default function Sidebar({
                 </div>
               </div>
             </div>
+
+            {/* Cỡ chữ */}
+            <div>
+              <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                <span>Cỡ chữ</span>
+                <span>{fontSize}px</span>
+              </div>
+              <input
+                type="range"
+                min="16"
+                max="44"
+                value={fontSize}
+                onChange={(e) => setFontSize(parseInt(e.target.value))}
+                className="w-full accent-rose-500"
+              />
+            </div>
           </div>
         )}
 
-        {/* --- TAB 4: STICKERS & DECOR --- */}
+        {/* ============================================================ */}
+        {/* TAB 4: STICKERS & TRANG TRÍ (DECOR)                          */}
+        {/* ============================================================ */}
         {activeTab === 'stickers' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-xl bg-rose-50/60 border border-rose-100">
@@ -385,6 +514,7 @@ export default function Sidebar({
               />
             </div>
 
+            {/* Màu băng dính Washi Tape */}
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
                 Màu băng dính Washi Tape
@@ -404,6 +534,7 @@ export default function Sidebar({
               </div>
             </div>
 
+            {/* Bảng Sticker Palette */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -432,13 +563,15 @@ export default function Sidebar({
                 ))}
               </div>
               <p className="text-[11px] text-slate-400 mt-1.5 italic">
-                💡 Bạn có thể dùng chuột kéo thả trực tiếp sticker trên khung ảnh để đổi vị trí.
+                💡 Dùng chuột kéo thả trực tiếp sticker trên khung ảnh để đổi vị trí.
               </p>
             </div>
           </div>
         )}
 
-        {/* --- TAB 5: MÀU NỀN (BACKGROUND) --- */}
+        {/* ============================================================ */}
+        {/* TAB 5: MÀU NỀN & HIỆU ỨNG (BACKGROUND & EFFECTS)            */}
+        {/* ============================================================ */}
         {activeTab === 'background' && (
           <div className="space-y-4">
             <div>
@@ -474,6 +607,22 @@ export default function Sidebar({
                   className="w-10 h-10 rounded-xl cursor-pointer border border-slate-200"
                 />
                 <span className="text-xs font-mono font-bold text-slate-700">{bgColor}</span>
+              </div>
+            </div>
+
+            {/* Hiệu ứng Vệt Nắng Chiều (Sunbeam Light Leak) */}
+            <div className="pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50/50 border border-amber-200/60">
+                <div>
+                  <div className="text-xs font-bold text-amber-900">Vệt nắng chiều ấm áp (Sunbeam)</div>
+                  <div className="text-[11px] text-amber-700">Ánh nắng xiên nhẹ nhàng tạo chiều sâu</div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={sunbeamEffect}
+                  onChange={(e) => setSunbeamEffect(e.target.checked)}
+                  className="w-4 h-4 accent-amber-500 cursor-pointer"
+                />
               </div>
             </div>
           </div>
