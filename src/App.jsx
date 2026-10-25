@@ -5,11 +5,12 @@ import CanvasWorkspace from './components/CanvasWorkspace';
 import { TEMPLATES_DATA, BACKGROUND_PALETTES } from './data/templatesData';
 import { getRandomQuote } from './data/quotesData';
 import { WASHI_TAPE_COLORS, STICKER_ITEMS } from './data/stickersData';
+import { createSamplePhoto } from './data/samplePhotos';
 import { downloadCanvasAsImage } from './utils/exportImage';
 
-// Ảnh mẫu nghệ thuật ban đầu để người dùng thấy ngay điều kỳ diệu
-const SAMPLE_PHOTO = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1000&q=80';
-const SAMPLE_PHOTO_2 = 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1000&q=80';
+// Ảnh mẫu nội bộ dạng Data URL: Không phụ thuộc mạng ngoài, 100% không bị lỗi CORS khi xuất ảnh
+const SAMPLE_PHOTO = createSamplePhoto(['#FCE7F3', '#FED7AA', '#E0E7FF'], '🌸', 'Khoảnh Khắc Xinh Đẹp ✨');
+const SAMPLE_PHOTO_2 = createSamplePhoto(['#E0F2FE', '#EDE9FE', '#FCE7F3'], '🌿', 'An Nhiên & Dịu Dàng 🍃');
 
 export default function App() {
   // Trạng thái ảnh (hỗ trợ tối đa 6 ảnh)
