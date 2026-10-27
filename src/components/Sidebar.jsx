@@ -25,7 +25,7 @@ import {
   X,
   FileText
 } from 'lucide-react';
-import { TEMPLATES_DATA, FONT_OPTIONS, BACKGROUND_PALETTES } from '../data/templatesData';
+import { TEMPLATES_DATA, FRAME_CATEGORIES, FONT_OPTIONS, BACKGROUND_PALETTES } from '../data/templatesData';
 import { QUOTE_CATEGORIES, QUOTES_DATA, getRandomQuote, searchQuotes } from '../data/quotesData';
 import { STICKER_ITEMS, WASHI_TAPE_COLORS } from '../data/stickersData';
 import QuoteLibraryModal from './QuoteLibraryModal';
@@ -273,49 +273,30 @@ export default function Sidebar({
         {/* ============================================================ */}
         {activeTab === 'templates' && (
           <div className="space-y-4">
-            {/* Lọc danh mục khung */}
-            <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
-              <button
-                onClick={() => setFrameFilter('all')}
-                className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
-                  frameFilter === 'all'
-                    ? 'bg-rose-500 text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                Tất cả ({TEMPLATES_DATA.length})
-              </button>
+            {/* Lọc danh mục khung (4 nhóm chính: Tối giản, Retro, Tech UI, Collage & Hàn Quốc) */}
+            <div className="flex gap-1.5 overflow-x-auto pb-1.5 text-xs scrollbar-thin">
+              {FRAME_CATEGORIES.map(cat => {
+                const isSelected = frameFilter === cat.id;
+                const isSpecial = cat.isSpecial;
 
-              <button
-                onClick={() => setFrameFilter('recommended')}
-                className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
-                  frameFilter === 'recommended'
-                    ? 'bg-amber-500 text-white shadow-sm'
-                    : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Tối ưu cho {photos.length} ảnh</span>
-              </button>
-
-              {[
-                { id: 'canva', name: 'Khung Lồng' },
-                { id: 'korean', name: 'Hàn Quốc' },
-                { id: 'popup', name: 'Pop-up' },
-                { id: 'polaroid', name: 'Polaroid' },
-              ].map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setFrameFilter(cat.id)}
-                  className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
-                    frameFilter === cat.id
-                      ? 'bg-rose-500 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setFrameFilter(cat.id)}
+                    className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 shrink-0 ${
+                      isSelected
+                        ? (isSpecial ? 'bg-amber-500 text-white shadow-sm' : 'bg-rose-500 text-white shadow-sm')
+                        : (isSpecial ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')
+                    }`}
+                  >
+                    {isSpecial && <Sparkles className="w-3.5 h-3.5" />}
+                    <span>{cat.id === 'recommended' ? `⭐ Tối ưu cho ${photos.length} ảnh` : cat.name}</span>
+                    {cat.id === 'all' && (
+                      <span className="text-[10px] opacity-75">({TEMPLATES_DATA.length})</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Grid danh sách khung */}
